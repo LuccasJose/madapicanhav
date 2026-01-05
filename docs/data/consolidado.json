@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-01-05T00:28:23.778526",
+  "gerado_em": "2026-01-05T09:07:35.690260",
   "arquivos": [
     "vendas_mensal.json",
     "vendas_semanal.json",
@@ -21,6 +21,6 @@
   ],
   "periodo_dados": {
     "inicio": "2022-12-13",
-    "fim": "2026-01-02"
+    "fim": "2026-01-03"
   }
 }

@@ -332,7 +332,8 @@
     "MOUSSE DE CHOCOLATE IFOOD|C": "Baixo giro - avaliar promoção ou descontinuar",
     "FANTA KS EXECUTIVO|C": "Baixo giro - avaliar promoção ou descontinuar",
     "PF DO MANDA+1REFR1+1MOUSSE|C": "Baixo giro - avaliar promoção ou descontinuar",
-    "DESCONTO DELIVERY IFOOD|C": "Baixo giro - avaliar necessidade ou descontinuar"
+    "DESCONTO DELIVERY IFOOD|C": "Baixo giro - avaliar necessidade ou descontinuar",
+    "ANCHO ANGUS IND IFOOD|B": "Produto com potencial - avaliar promoções e visibilidade"
   },
   "14": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial, manter a oferta e avaliar sazonalidade.",
@@ -472,7 +473,8 @@
     "MP DUPLO CHEDDAR + FRITAS|B": "Produto com potencial - analisar sazonalidade e promoções",
     "PF FILE DE FRANGO KIDS|B": "Produto com potencial - avaliar ações para aumentar vendas",
     "CERVEJA HEINEKEN 600ML|C": "Baixa demanda - avaliar necessidade de estoque",
-    "FETTUCCINE FRANGO EXEC|B": "Demanda moderada - avaliar promoções ou ajustes"
+    "FETTUCCINE FRANGO EXEC|B": "Demanda moderada - avaliar promoções ou ajustes",
+    "COXA E SOBRECOXA EXEC|C": "Produto com potencial - avaliar ações de marketing"
   },
   "15": {
     "FILET MIGNON 400G|A": "Produto com grande potencial - manter e otimizar a oferta.",
@@ -1595,7 +1597,9 @@
     "LICOR BALLENA DOSE|C": "Baixa frequência - avaliar necessidade de estoque",
     "WHISKY OLD PARR DOSE|C": "Baixa frequência - avaliar necessidade de estoque",
     "LING CERATTI BIQUINHO 400GR|C": "Baixa frequência - avaliar necessidade de estoque",
-    "CAMPARI DOSE|C": "Baixa frequência - avaliar necessidade de estoque"
+    "CAMPARI DOSE|C": "Baixa frequência - avaliar necessidade de estoque",
+    "KIT CHURRAS DA HORA|A": "Produto com potencial - manter e otimizar promoções",
+    "SACHE MAIONESE|C": "Baixo giro - avaliar necessidade e alternativas"
   },
   "20": {
     "PRATO COMBINADO 2 PESSOAS 34|A": "Produto com potencial, manter oferta e visibilidade.",
@@ -1936,7 +1940,8 @@
     "ESPETO KAFTA BOVINA KG|C": "Avaliar - promover ou ajustar",
     "SUCO DE LARANJA|C": "Avaliar - promover ou ajustar",
     "GUARANA 350 ML|C": "Avaliar - promover ou ajustar",
-    "CALDO DE LIMAO|C": "Avaliar - promover ou ajustar"
+    "CALDO DE LIMAO|C": "Avaliar - promover ou ajustar",
+    "BURGER LA PICANHA|C": "Baixo giro - avaliar visibilidade e promoções"
   },
   "4": {
     "FICHA FLIPERAMA|A": "Produto com potencial, otimizar estoque e promoções.",
@@ -3473,7 +3478,14 @@
     "VT YLLERA 750ML|C": "Produto com baixa demanda - avaliar estratégia de venda",
     "ESPETO MEIO DA ASA KG|C": "Produto com baixa demanda - avaliar estratégia de venda",
     "CERVEJA STELLA 600ML|C": "Produto com baixa demanda - avaliar estratégia de venda",
-    "FICHA BRINQUEDOTECA|C": "Produto com baixa demanda - avaliar estratégia de venda"
+    "FICHA BRINQUEDOTECA|C": "Produto com baixa demanda - avaliar estratégia de venda",
+    "PICANHA ANGUS CABANA LAS LILA|A": "Produto de alta demanda - garantir estoque e visibilidade.",
+    "PICANHA GRILL ORO TORO|A": "Potencial de destaque - investigar variação nas vendas.",
+    "LING CERATTI LIMÃO 400G|B": "Demanda moderada - avaliar promoções ou substituições.",
+    "VT ACHAVAL FERRER MALBEC 750ML|C": "Baixo giro - considerar ações para impulsionar vendas.",
+    "ESPETO INOX DUPLO|C": "Baixo giro - avaliar a necessidade de manter o produto.",
+    "GELEIA RITTER DAMASCO PIMENTA|C": "Baixo giro - avaliar a necessidade de manter o produto.",
+    "DESCONTO DELIVERY IFOOD|C": "Baixo giro - avaliar a necessidade de manter o produto."
   },
   "9": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial - monitorar sazonalidade e promoções",
