@@ -2384,6 +2384,17 @@
         "analise_ia": "Manter oferta - avaliar aceitação e possíveis ajustes"
       },
       {
+        "produto": "ANCHO ANGUS IND IFOOD",
+        "valor_total": 978.18,
+        "classe": "B",
+        "historico": {
+          "2025-11": 139.74,
+          "2025-12": 419.22,
+          "2026-01": 419.22
+        },
+        "analise_ia": "Produto com potencial - avaliar promoções e visibilidade"
+      },
+      {
         "produto": "BURGER MP",
         "valor_total": 976.8,
         "classe": "B",
@@ -5300,17 +5311,6 @@
           "2025-12": 0.01
         },
         "analise_ia": "Baixo giro - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "ANCHO ANGUS IND IFOOD",
-        "valor_total": 978.18,
-        "classe": "B",
-        "historico": {
-          "2025-11": 139.74,
-          "2025-12": 419.22,
-          "2026-01": 419.22
-        },
-        "analise_ia": "Produto com potencial - avaliar promoções e visibilidade"
       }
     ]
   },
@@ -6359,6 +6359,24 @@
         "analise_ia": "Produto com potencial - avaliar ações para aumentar vendas"
       },
       {
+        "produto": "COXA E SOBRECOXA EXEC",
+        "valor_total": 814.3,
+        "classe": "C",
+        "historico": {
+          "2024-07": 95.8,
+          "2024-12": 47.9,
+          "2025-01": 95.8,
+          "2025-05": 47.9,
+          "2025-07": 95.8,
+          "2025-08": 143.7,
+          "2025-09": 47.9,
+          "2025-10": 47.9,
+          "2025-11": 143.7,
+          "2025-12": 47.9
+        },
+        "analise_ia": "Produto com potencial - avaliar ações de marketing"
+      },
+      {
         "produto": "VINAGRETE",
         "valor_total": 716.0,
         "classe": "C",
@@ -7316,24 +7334,6 @@
           "2025-06": 7.9
         },
         "analise_ia": "Baixo desempenho - avaliar visibilidade e promoções"
-      },
-      {
-        "produto": "COXA E SOBRECOXA EXEC",
-        "valor_total": 814.3,
-        "classe": "C",
-        "historico": {
-          "2024-07": 95.8,
-          "2024-12": 47.9,
-          "2025-01": 95.8,
-          "2025-05": 47.9,
-          "2025-07": 95.8,
-          "2025-08": 143.7,
-          "2025-09": 47.9,
-          "2025-10": 47.9,
-          "2025-11": 143.7,
-          "2025-12": 47.9
-        },
-        "analise_ia": "Produto com potencial - avaliar ações de marketing"
       }
     ]
   },
@@ -16093,6 +16093,20 @@
           "2025-07": 75.96
         },
         "analise_ia": "Produto com potencial - otimizar a disponibilidade"
+      },
+      {
+        "produto": "KIT CHURRAS DA HORA",
+        "valor_total": 1819.7,
+        "classe": "A",
+        "historico": {
+          "2023-09": 279.9,
+          "2025-06": 150.0,
+          "2025-07": 450.0,
+          "2025-08": 300.0,
+          "2025-09": 150.0,
+          "2025-10": 489.8
+        },
+        "analise_ia": "Produto com potencial - manter e otimizar promoções"
       },
       {
         "produto": "KIT SUAVE NA NAVE",
@@ -25442,6 +25456,15 @@
         "analise_ia": "Produto com potencial - avaliar visibilidade e preço."
       },
       {
+        "produto": "SACHE MAIONESE",
+        "valor_total": 2.97,
+        "classe": "C",
+        "historico": {
+          "2026-01": 2.97
+        },
+        "analise_ia": "Baixo giro - avaliar necessidade e alternativas"
+      },
+      {
         "produto": "CORAC ALCATRA NICCR BASSI ST",
         "valor_total": 2.9,
         "classe": "C",
@@ -25485,29 +25508,6 @@
           "2025-11": 0.01
         },
         "analise_ia": "Baixa procura - promover ou reduzir preparo."
-      },
-      {
-        "produto": "KIT CHURRAS DA HORA",
-        "valor_total": 1819.7,
-        "classe": "A",
-        "historico": {
-          "2023-09": 279.9,
-          "2025-06": 150.0,
-          "2025-07": 450.0,
-          "2025-08": 300.0,
-          "2025-09": 150.0,
-          "2025-10": 489.8
-        },
-        "analise_ia": "Produto com potencial - manter e otimizar promoções"
-      },
-      {
-        "produto": "SACHE MAIONESE",
-        "valor_total": 2.97,
-        "classe": "C",
-        "historico": {
-          "2026-01": 2.97
-        },
-        "analise_ia": "Baixo giro - avaliar necessidade e alternativas"
       }
     ]
   },
@@ -28103,6 +28103,15 @@
         "analise_ia": "Produto com potencial - avaliar promoções e visibilidade"
       },
       {
+        "produto": "BURGER LA PICANHA",
+        "valor_total": 61.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 61.9
+        },
+        "analise_ia": "Baixo giro - avaliar visibilidade e promoções"
+      },
+      {
         "produto": "GELO",
         "valor_total": 60.0,
         "classe": "C",
@@ -28705,15 +28714,6 @@
           "2025-12": 0.99
         },
         "analise_ia": "Baixa procura - avaliar necessidade e alternativas"
-      },
-      {
-        "produto": "BURGER LA PICANHA",
-        "valor_total": 61.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 61.9
-        },
-        "analise_ia": "Baixo giro - avaliar visibilidade e promoções"
       }
     ]
   },
@@ -48805,6 +48805,16 @@
         "analise_ia": "Produto chave - garantir estoque e visibilidade"
       },
       {
+        "produto": "PICANHA ANGUS CABANA LAS LILA",
+        "valor_total": 1711.18,
+        "classe": "A",
+        "historico": {
+          "2025-12": 685.77,
+          "2026-01": 1025.41
+        },
+        "analise_ia": "Produto de alta demanda - garantir estoque e visibilidade."
+      },
+      {
         "produto": "PICANHA BELLA BLACK",
         "valor_total": 1671.75,
         "classe": "A",
@@ -48906,6 +48916,16 @@
           "2026-01": 26.9
         },
         "analise_ia": "Manter oferta - avaliar sazonalidade e promoções pontuais."
+      },
+      {
+        "produto": "PICANHA GRILL ORO TORO",
+        "valor_total": 1514.53,
+        "classe": "A",
+        "historico": {
+          "2025-12": 1320.66,
+          "2026-01": 193.87
+        },
+        "analise_ia": "Potencial de destaque - investigar variação nas vendas."
       },
       {
         "produto": "PASTEL DE CAMARÃO 6UN",
@@ -49687,6 +49707,16 @@
         "analise_ia": "Produto com boa saída - avaliar ações de marketing"
       },
       {
+        "produto": "LING CERATTI LIMÃO 400G",
+        "valor_total": 449.1,
+        "classe": "B",
+        "historico": {
+          "2025-12": 349.3,
+          "2026-01": 99.8
+        },
+        "analise_ia": "Demanda moderada - avaliar promoções ou substituições."
+      },
+      {
         "produto": "QUEIJO PROVOLONE PACOTE",
         "valor_total": 444.98,
         "classe": "B",
@@ -50131,6 +50161,15 @@
         "analise_ia": "Demanda estável - garantir estoque adequado"
       },
       {
+        "produto": "VT ACHAVAL FERRER MALBEC 750ML",
+        "valor_total": 179.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 179.9
+        },
+        "analise_ia": "Baixo giro - considerar ações para impulsionar vendas."
+      },
+      {
         "produto": "VT MALACARA MALBEC 750ML",
         "valor_total": 179.8,
         "classe": "C",
@@ -50469,6 +50508,15 @@
           "2025-12": 99.9
         },
         "analise_ia": "Produto com potencial - avaliar visibilidade e oferta."
+      },
+      {
+        "produto": "ESPETO INOX DUPLO",
+        "valor_total": 99.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 99.9
+        },
+        "analise_ia": "Baixo giro - avaliar a necessidade de manter o produto."
       },
       {
         "produto": "LING CERATTI CHIMICHURRI 400GR",
@@ -50904,6 +50952,15 @@
         "analise_ia": "Baixo giro - avaliar promoção ou descontinuar"
       },
       {
+        "produto": "GELEIA RITTER DAMASCO PIMENTA",
+        "valor_total": 24.99,
+        "classe": "C",
+        "historico": {
+          "2026-01": 24.99
+        },
+        "analise_ia": "Baixo giro - avaliar a necessidade de manter o produto."
+      },
+      {
         "produto": "PICOLE MORANGO",
         "valor_total": 24.95,
         "classe": "C",
@@ -51215,6 +51272,15 @@
         "analise_ia": "Baixo desempenho - avaliar promoção ou descontinuar"
       },
       {
+        "produto": "DESCONTO DELIVERY IFOOD",
+        "valor_total": 5.0,
+        "classe": "C",
+        "historico": {
+          "2026-01": 5.0
+        },
+        "analise_ia": "Baixo giro - avaliar a necessidade de manter o produto."
+      },
+      {
         "produto": "FICHA BRINQUEDOTECA",
         "valor_total": 4.0,
         "classe": "C",
@@ -51223,72 +51289,6 @@
           "2026-01": 2.0
         },
         "analise_ia": "Produto com baixa demanda - avaliar estratégia de venda"
-      },
-      {
-        "produto": "PICANHA ANGUS CABANA LAS LILA",
-        "valor_total": 1711.18,
-        "classe": "A",
-        "historico": {
-          "2025-12": 685.77,
-          "2026-01": 1025.41
-        },
-        "analise_ia": "Produto de alta demanda - garantir estoque e visibilidade."
-      },
-      {
-        "produto": "PICANHA GRILL ORO TORO",
-        "valor_total": 1514.53,
-        "classe": "A",
-        "historico": {
-          "2025-12": 1320.66,
-          "2026-01": 193.87
-        },
-        "analise_ia": "Potencial de destaque - investigar variação nas vendas."
-      },
-      {
-        "produto": "LING CERATTI LIMÃO 400G",
-        "valor_total": 449.1,
-        "classe": "B",
-        "historico": {
-          "2025-12": 349.3,
-          "2026-01": 99.8
-        },
-        "analise_ia": "Demanda moderada - avaliar promoções ou substituições."
-      },
-      {
-        "produto": "VT ACHAVAL FERRER MALBEC 750ML",
-        "valor_total": 179.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 179.9
-        },
-        "analise_ia": "Baixo giro - considerar ações para impulsionar vendas."
-      },
-      {
-        "produto": "ESPETO INOX DUPLO",
-        "valor_total": 99.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 99.9
-        },
-        "analise_ia": "Baixo giro - avaliar a necessidade de manter o produto."
-      },
-      {
-        "produto": "GELEIA RITTER DAMASCO PIMENTA",
-        "valor_total": 24.99,
-        "classe": "C",
-        "historico": {
-          "2026-01": 24.99
-        },
-        "analise_ia": "Baixo giro - avaliar a necessidade de manter o produto."
-      },
-      {
-        "produto": "DESCONTO DELIVERY IFOOD",
-        "valor_total": 5.0,
-        "classe": "C",
-        "historico": {
-          "2026-01": 5.0
-        },
-        "analise_ia": "Baixo giro - avaliar a necessidade de manter o produto."
       }
     ]
   },
