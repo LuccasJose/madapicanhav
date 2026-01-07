@@ -333,7 +333,9 @@
     "FANTA KS EXECUTIVO|C": "Baixo giro - avaliar promoção ou descontinuar",
     "PF DO MANDA+1REFR1+1MOUSSE|C": "Baixo giro - avaliar promoção ou descontinuar",
     "DESCONTO DELIVERY IFOOD|C": "Baixo giro - avaliar necessidade ou descontinuar",
-    "ANCHO ANGUS IND IFOOD|B": "Produto com potencial - avaliar promoções e visibilidade"
+    "ANCHO ANGUS IND IFOOD|B": "Produto com potencial - avaliar promoções e visibilidade",
+    "COCA ZERO 350ML|A": "Produto chave - otimizar estoque e exposição",
+    "ESPETINHO TULIPAS DE FRANGO|B": "Produto com potencial - analisar sazonalidade e promoções"
   },
   "14": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial, manter a oferta e avaliar sazonalidade.",
@@ -1599,7 +1601,10 @@
     "LING CERATTI BIQUINHO 400GR|C": "Baixa frequência - avaliar necessidade de estoque",
     "CAMPARI DOSE|C": "Baixa frequência - avaliar necessidade de estoque",
     "KIT CHURRAS DA HORA|A": "Produto com potencial - manter e otimizar promoções",
-    "SACHE MAIONESE|C": "Baixo giro - avaliar necessidade e alternativas"
+    "SACHE MAIONESE|C": "Baixo giro - avaliar necessidade e alternativas",
+    "PICANHA PRIME EXEC|A": "Produto com potencial - manter e otimizar oferta",
+    "PF KIDS|B": "Demanda moderada - avaliar promoções e visibilidade",
+    "BURGER RAIZ MP|C": "Baixa saída - avaliar a continuidade do produto"
   },
   "20": {
     "PRATO COMBINADO 2 PESSOAS 34|A": "Produto com potencial, manter oferta e visibilidade.",
@@ -1941,7 +1946,13 @@
     "SUCO DE LARANJA|C": "Avaliar - promover ou ajustar",
     "GUARANA 350 ML|C": "Avaliar - promover ou ajustar",
     "CALDO DE LIMAO|C": "Avaliar - promover ou ajustar",
-    "BURGER LA PICANHA|C": "Baixo giro - avaliar visibilidade e promoções"
+    "BURGER LA PICANHA|C": "Baixo giro - avaliar visibilidade e promoções",
+    "BIFE ANCHO ESTANCIA 92|A": "Produto de alto valor - garantir estoque e visibilidade",
+    "BURGER LA PICANHA|B": "Produto com potencial - avaliar promoções e visibilidade",
+    "COCA COLA 1.5L|B": "Produto com potencial - otimizar exposição e oferta",
+    "BURGER MP+FRITA+COCA ZERO|C": "Produto com baixa demanda - avaliar ajustes ou descontinuar",
+    "SALADA DE FRANGO CREMOSA EXEC|C": "Produto com baixa demanda - avaliar ajustes ou descontinuar",
+    "SUCO MARACUJA COM MORANGO|C": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
   },
   "4": {
     "FICHA FLIPERAMA|A": "Produto com potencial, otimizar estoque e promoções.",
@@ -2790,7 +2801,12 @@
     "SUCO DE LARANJA 1 LT|B": "Potencial de crescimento - analisar ações de marketing",
     "1/2 G FRANGO COM CATUPIRY|B": "Demanda moderada - avaliar preço e apresentação",
     "FAUSTO VINHO CABERNET 187ML|C": "Baixa rotatividade - avaliar promoções ou substituição",
-    "PIZZA BACON PEQUENA|C": "Demanda variável - investigar picos e otimizar oferta"
+    "PIZZA BACON PEQUENA|C": "Demanda variável - investigar picos e otimizar oferta",
+    "COCA COLA 1L|A": "Produto de alto giro - garantir estoque e visibilidade",
+    "PF MANDA PIZZA IND|C": "Baixo volume - avaliar promoção ou descontinuar",
+    "PIZZA P MANDA PICANHA|C": "Baixo volume - avaliar promoção ou descontinuar",
+    "CB CALZONE DE PIZZA IFOOD|C": "Baixo volume - avaliar promoção ou descontinuar",
+    "SACHE MAIONESE|C": "Baixo volume - avaliar promoção ou descontinuar"
   },
   "6": {
     "PARMEGIANA IND IFOOD|A": "Produto com potencial de crescimento - investir em divulgação.",
@@ -3069,7 +3085,8 @@
     "FAROFA DE OVOS IND IFOOD|C": "Baixo desempenho - avaliar necessidade e promover",
     "FILE DE PEIXE GRELHA EXEC|B": "Produto com potencial - monitorar e otimizar a oferta",
     "ANCHO DOS DEUSES EXEC|A": "Produto com bom desempenho - manter e otimizar vendas",
-    "DESCONTO DELIVERY IFOOD|B": "Produto com potencial - avaliar estratégia de desconto"
+    "DESCONTO DELIVERY IFOOD|B": "Produto com potencial - avaliar estratégia de desconto",
+    "ESPET CORAÇÃO DE FRANGO IFOOD|B": "Produto com potencial - otimizar para aumentar as vendas"
   },
   "7": {
     "PIZZA G FRANGO COM CATUPIRY|A": "Produto com potencial - otimizar estoque e divulgação",
@@ -3485,7 +3502,10 @@
     "VT ACHAVAL FERRER MALBEC 750ML|C": "Baixo giro - considerar ações para impulsionar vendas.",
     "ESPETO INOX DUPLO|C": "Baixo giro - avaliar a necessidade de manter o produto.",
     "GELEIA RITTER DAMASCO PIMENTA|C": "Baixo giro - avaliar a necessidade de manter o produto.",
-    "DESCONTO DELIVERY IFOOD|C": "Baixo giro - avaliar a necessidade de manter o produto."
+    "DESCONTO DELIVERY IFOOD|C": "Baixo giro - avaliar a necessidade de manter o produto.",
+    "LING FINA FRANGO|B": "Produto com potencial - avaliar estratégia de venda",
+    "VT PIZZATO CONCENTUS 750ML|C": "Baixo giro - considerar ações para aumentar vendas",
+    "VT FAUSTO CABERNET SUAV 750ML|C": "Baixo giro - avaliar ações de marketing"
   },
   "9": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial - monitorar sazonalidade e promoções",
