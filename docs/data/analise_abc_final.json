@@ -1348,6 +1348,62 @@
         "analise_ia": "Produto com potencial - garantir estoque e visibilidade"
       },
       {
+        "produto": "COCA ZERO 350ML",
+        "valor_total": 3363.8,
+        "classe": "A",
+        "historico": {
+          "2024-11": 126.7,
+          "2024-12": 217.8,
+          "2025-01": 237.6,
+          "2025-02": 118.8,
+          "2025-03": 178.2,
+          "2025-04": 198.0,
+          "2025-05": 188.1,
+          "2025-06": 295.0,
+          "2025-07": 223.7,
+          "2025-08": 291.0,
+          "2025-09": 237.6,
+          "2025-10": 326.7,
+          "2025-11": 401.9,
+          "2025-12": 223.7,
+          "2026-01": 99.0
+        },
+        "analise_ia": "Produto chave - otimizar estoque e exposição"
+      },
+      {
+        "produto": "ESPETINHO TULIPAS DE FRANGO",
+        "valor_total": 3331.7,
+        "classe": "B",
+        "historico": {
+          "2024-01": 50.7,
+          "2024-02": 118.3,
+          "2024-03": 152.1,
+          "2024-04": 113.4,
+          "2024-05": 37.8,
+          "2024-06": 207.9,
+          "2024-07": 151.2,
+          "2024-08": 170.1,
+          "2024-09": 75.6,
+          "2024-10": 226.8,
+          "2024-11": 236.8,
+          "2024-12": 338.3,
+          "2025-01": 119.4,
+          "2025-02": 218.9,
+          "2025-03": 278.6,
+          "2025-04": 159.2,
+          "2025-05": 39.8,
+          "2025-06": 99.5,
+          "2025-07": 99.5,
+          "2025-08": 119.4,
+          "2025-09": 79.6,
+          "2025-10": 79.6,
+          "2025-11": 59.7,
+          "2025-12": 59.7,
+          "2026-01": 39.8
+        },
+        "analise_ia": "Produto com potencial - analisar sazonalidade e promoções"
+      },
+      {
         "produto": "FILE A PARMEGIANA 2P",
         "valor_total": 3198.0,
         "classe": "B",
@@ -5260,62 +5316,6 @@
           "2025-12": 0.01
         },
         "analise_ia": "Baixo giro - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "COCA ZERO 350ML",
-        "valor_total": 3363.8,
-        "classe": "A",
-        "historico": {
-          "2024-11": 126.7,
-          "2024-12": 217.8,
-          "2025-01": 237.6,
-          "2025-02": 118.8,
-          "2025-03": 178.2,
-          "2025-04": 198.0,
-          "2025-05": 188.1,
-          "2025-06": 295.0,
-          "2025-07": 223.7,
-          "2025-08": 291.0,
-          "2025-09": 237.6,
-          "2025-10": 326.7,
-          "2025-11": 401.9,
-          "2025-12": 223.7,
-          "2026-01": 99.0
-        },
-        "analise_ia": "Produto chave - otimizar estoque e exposição"
-      },
-      {
-        "produto": "ESPETINHO TULIPAS DE FRANGO",
-        "valor_total": 3331.7,
-        "classe": "B",
-        "historico": {
-          "2024-01": 50.7,
-          "2024-02": 118.3,
-          "2024-03": 152.1,
-          "2024-04": 113.4,
-          "2024-05": 37.8,
-          "2024-06": 207.9,
-          "2024-07": 151.2,
-          "2024-08": 170.1,
-          "2024-09": 75.6,
-          "2024-10": 226.8,
-          "2024-11": 236.8,
-          "2024-12": 338.3,
-          "2025-01": 119.4,
-          "2025-02": 218.9,
-          "2025-03": 278.6,
-          "2025-04": 159.2,
-          "2025-05": 39.8,
-          "2025-06": 99.5,
-          "2025-07": 99.5,
-          "2025-08": 119.4,
-          "2025-09": 79.6,
-          "2025-10": 79.6,
-          "2025-11": 59.7,
-          "2025-12": 59.7,
-          "2026-01": 39.8
-        },
-        "analise_ia": "Produto com potencial - analisar sazonalidade e promoções"
       }
     ]
   },
@@ -16056,6 +16056,17 @@
         "analise_ia": "Produto com potencial - manter destaque no cardápio"
       },
       {
+        "produto": "PICANHA PRIME EXEC",
+        "valor_total": 1927.2,
+        "classe": "A",
+        "historico": {
+          "2025-11": 768.9,
+          "2025-12": 948.6,
+          "2026-01": 209.7
+        },
+        "analise_ia": "Produto com potencial - manter e otimizar oferta"
+      },
+      {
         "produto": "CHEESEBURGER",
         "valor_total": 1924.1,
         "classe": "A",
@@ -19741,6 +19752,23 @@
           "2025-12": 17.9
         },
         "analise_ia": "Manter oferta - analisar frequência de compra."
+      },
+      {
+        "produto": "PF KIDS",
+        "valor_total": 339.0,
+        "classe": "B",
+        "historico": {
+          "2023-10": 29.9,
+          "2023-11": 29.9,
+          "2024-01": 29.9,
+          "2024-03": 29.9,
+          "2024-08": 32.9,
+          "2024-10": 70.8,
+          "2024-11": 35.9,
+          "2025-09": 39.9,
+          "2025-10": 39.9
+        },
+        "analise_ia": "Demanda moderada - avaliar promoções e visibilidade"
       },
       {
         "produto": "COCA ZERO 2LT",
@@ -24018,6 +24046,15 @@
         "analise_ia": "Produto com potencial - avaliar a frequência de compra"
       },
       {
+        "produto": "BURGER RAIZ MP",
+        "valor_total": 43.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 43.9
+        },
+        "analise_ia": "Baixa saída - avaliar a continuidade do produto"
+      },
+      {
         "produto": "DRINK GIN TROPICAL HAPPY HOUR",
         "valor_total": 43.8,
         "classe": "C",
@@ -25515,43 +25552,6 @@
           "2025-11": 0.01
         },
         "analise_ia": "Baixa procura - promover ou reduzir preparo."
-      },
-      {
-        "produto": "PICANHA PRIME EXEC",
-        "valor_total": 1927.2,
-        "classe": "A",
-        "historico": {
-          "2025-11": 768.9,
-          "2025-12": 948.6,
-          "2026-01": 209.7
-        },
-        "analise_ia": "Produto com potencial - manter e otimizar oferta"
-      },
-      {
-        "produto": "PF KIDS",
-        "valor_total": 339.0,
-        "classe": "B",
-        "historico": {
-          "2023-10": 29.9,
-          "2023-11": 29.9,
-          "2024-01": 29.9,
-          "2024-03": 29.9,
-          "2024-08": 32.9,
-          "2024-10": 70.8,
-          "2024-11": 35.9,
-          "2025-09": 39.9,
-          "2025-10": 39.9
-        },
-        "analise_ia": "Demanda moderada - avaliar promoções e visibilidade"
-      },
-      {
-        "produto": "BURGER RAIZ MP",
-        "valor_total": 43.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 43.9
-        },
-        "analise_ia": "Baixa saída - avaliar a continuidade do produto"
       }
     ]
   },
@@ -27575,6 +27575,15 @@
         "analise_ia": "Produto de alto giro - garantir estoque e visibilidade"
       },
       {
+        "produto": "BIFE ANCHO ESTANCIA 92",
+        "valor_total": 422.28,
+        "classe": "A",
+        "historico": {
+          "2025-12": 422.28
+        },
+        "analise_ia": "Produto de alto valor - garantir estoque e visibilidade"
+      },
+      {
         "produto": "MEIO DA ASA TEMPERADO",
         "valor_total": 421.93,
         "classe": "B",
@@ -27915,6 +27924,15 @@
         "analise_ia": "Produto com bom potencial - otimizar exposição e promoções."
       },
       {
+        "produto": "BURGER LA PICANHA",
+        "valor_total": 123.8,
+        "classe": "B",
+        "historico": {
+          "2026-01": 123.8
+        },
+        "analise_ia": "Produto com potencial - avaliar promoções e visibilidade"
+      },
+      {
         "produto": "QUEIJO COALHO PACOTE",
         "valor_total": 121.26,
         "classe": "B",
@@ -27978,6 +27996,16 @@
         "analise_ia": "Produto com bom potencial - manter visibilidade e oferta."
       },
       {
+        "produto": "COCA COLA 1.5L",
+        "valor_total": 111.3,
+        "classe": "B",
+        "historico": {
+          "2025-12": 31.8,
+          "2026-01": 79.5
+        },
+        "analise_ia": "Produto com potencial - otimizar exposição e oferta"
+      },
+      {
         "produto": "AGUA SEM GAS",
         "valor_total": 105.0,
         "classe": "B",
@@ -28005,6 +28033,15 @@
           "2026-01": 16.9
         },
         "analise_ia": "Rever estratégia - analisar preço e visibilidade"
+      },
+      {
+        "produto": "BURGER MP+FRITA+COCA ZERO",
+        "valor_total": 99.8,
+        "classe": "C",
+        "historico": {
+          "2025-12": 99.8
+        },
+        "analise_ia": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
       },
       {
         "produto": "ESPETO ROMEU E JULIETA KG",
@@ -28375,6 +28412,15 @@
         "analise_ia": "Baixa procura - avaliar necessidade e alternativas"
       },
       {
+        "produto": "SALADA DE FRANGO CREMOSA EXEC",
+        "valor_total": 35.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 35.9
+        },
+        "analise_ia": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
+      },
+      {
         "produto": "GALETO DESSOSADO CONG TEMP",
         "valor_total": 35.7,
         "classe": "C",
@@ -28529,6 +28575,15 @@
           "2025-12": 20.28
         },
         "analise_ia": "Produto com potencial - avaliar promoções e visibilidade"
+      },
+      {
+        "produto": "SUCO MARACUJA COM MORANGO",
+        "valor_total": 19.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 19.9
+        },
+        "analise_ia": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
       },
       {
         "produto": "ESPETINHO QUEIJO PROVOLONE",
@@ -28730,61 +28785,6 @@
           "2026-01": 1.98
         },
         "analise_ia": "Baixa procura - avaliar necessidade e alternativas"
-      },
-      {
-        "produto": "BIFE ANCHO ESTANCIA 92",
-        "valor_total": 422.28,
-        "classe": "A",
-        "historico": {
-          "2025-12": 422.28
-        },
-        "analise_ia": "Produto de alto valor - garantir estoque e visibilidade"
-      },
-      {
-        "produto": "BURGER LA PICANHA",
-        "valor_total": 123.8,
-        "classe": "B",
-        "historico": {
-          "2026-01": 123.8
-        },
-        "analise_ia": "Produto com potencial - avaliar promoções e visibilidade"
-      },
-      {
-        "produto": "COCA COLA 1.5L",
-        "valor_total": 111.3,
-        "classe": "B",
-        "historico": {
-          "2025-12": 31.8,
-          "2026-01": 79.5
-        },
-        "analise_ia": "Produto com potencial - otimizar exposição e oferta"
-      },
-      {
-        "produto": "BURGER MP+FRITA+COCA ZERO",
-        "valor_total": 99.8,
-        "classe": "C",
-        "historico": {
-          "2025-12": 99.8
-        },
-        "analise_ia": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
-      },
-      {
-        "produto": "SALADA DE FRANGO CREMOSA EXEC",
-        "valor_total": 35.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 35.9
-        },
-        "analise_ia": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
-      },
-      {
-        "produto": "SUCO MARACUJA COM MORANGO",
-        "valor_total": 19.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 19.9
-        },
-        "analise_ia": "Produto com baixa demanda - avaliar ajustes ou descontinuar"
       }
     ]
   },
@@ -34835,6 +34835,17 @@
         "analise_ia": "Produto de alto giro - garantir estoque e visibilidade"
       },
       {
+        "produto": "COCA COLA 1L",
+        "valor_total": 3783.8,
+        "classe": "A",
+        "historico": {
+          "2025-11": 1040.0,
+          "2025-12": 2295.8,
+          "2026-01": 448.0
+        },
+        "analise_ia": "Produto de alto giro - garantir estoque e visibilidade"
+      },
+      {
         "produto": "CHOPP 300ML",
         "valor_total": 3654.9,
         "classe": "B",
@@ -39821,6 +39832,15 @@
         "analise_ia": "Potencial baixo - avaliar a aceitação e promover"
       },
       {
+        "produto": "PF MANDA PIZZA IND",
+        "valor_total": 44.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 44.9
+        },
+        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
+      },
+      {
         "produto": "CB PIZZA P MANDA PIZZA IFOOD",
         "valor_total": 42.9,
         "classe": "C",
@@ -39837,6 +39857,15 @@
           "2025-12": 39.9
         },
         "analise_ia": "Potencial baixo - avaliar a aceitação e promover"
+      },
+      {
+        "produto": "PIZZA P MANDA PICANHA",
+        "valor_total": 39.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 39.9
+        },
+        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
       },
       {
         "produto": "PF DO ALUNO FRACTAL",
@@ -39970,6 +39999,15 @@
           "2025-07": 28.9
         },
         "analise_ia": "Potencial baixo - avaliar a combinação e promoções"
+      },
+      {
+        "produto": "CB CALZONE DE PIZZA IFOOD",
+        "valor_total": 28.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 28.9
+        },
+        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
       },
       {
         "produto": "SUCO PESSEGO 1LT",
@@ -40701,6 +40739,15 @@
         "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
       },
       {
+        "produto": "SACHE MAIONESE",
+        "valor_total": 2.0,
+        "classe": "C",
+        "historico": {
+          "2026-01": 2.0
+        },
+        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
+      },
+      {
         "produto": "PIZZA DEGUSTAÇÃO",
         "valor_total": 1.75,
         "classe": "C",
@@ -40751,53 +40798,6 @@
         "classe": "C",
         "historico": {
           "2025-09": 0.05
-        },
-        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "COCA COLA 1L",
-        "valor_total": 3783.8,
-        "classe": "A",
-        "historico": {
-          "2025-11": 1040.0,
-          "2025-12": 2295.8,
-          "2026-01": 448.0
-        },
-        "analise_ia": "Produto de alto giro - garantir estoque e visibilidade"
-      },
-      {
-        "produto": "PF MANDA PIZZA IND",
-        "valor_total": 44.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 44.9
-        },
-        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "PIZZA P MANDA PICANHA",
-        "valor_total": 39.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 39.9
-        },
-        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "CB CALZONE DE PIZZA IFOOD",
-        "valor_total": 28.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 28.9
-        },
-        "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "SACHE MAIONESE",
-        "valor_total": 2.0,
-        "classe": "C",
-        "historico": {
-          "2026-01": 2.0
         },
         "analise_ia": "Baixo volume - avaliar promoção ou descontinuar"
       }
@@ -43965,6 +43965,50 @@
           "2026-01": 52.9
         },
         "analise_ia": "Produto com potencial - monitorar e otimizar a oferta"
+      },
+      {
+        "produto": "ESPET CORAÇÃO DE FRANGO IFOOD",
+        "valor_total": 7999.3,
+        "classe": "B",
+        "historico": {
+          "2022-12": 174.9,
+          "2023-01": 349.8,
+          "2023-02": 190.8,
+          "2023-03": 47.7,
+          "2023-04": 127.2,
+          "2023-05": 190.8,
+          "2023-06": 318.0,
+          "2023-07": 174.9,
+          "2023-08": 254.4,
+          "2023-09": 318.0,
+          "2023-10": 222.6,
+          "2023-11": 79.5,
+          "2024-02": 111.3,
+          "2024-03": 270.3,
+          "2024-04": 389.8,
+          "2024-05": 286.4,
+          "2024-06": 107.4,
+          "2024-07": 286.4,
+          "2024-08": 304.3,
+          "2024-09": 125.3,
+          "2024-10": 179.0,
+          "2024-11": 179.0,
+          "2024-12": 268.5,
+          "2025-01": 232.7,
+          "2025-02": 196.9,
+          "2025-03": 358.0,
+          "2025-04": 250.6,
+          "2025-05": 250.6,
+          "2025-06": 214.8,
+          "2025-07": 268.5,
+          "2025-08": 161.1,
+          "2025-09": 107.4,
+          "2025-10": 250.6,
+          "2025-11": 304.3,
+          "2025-12": 304.3,
+          "2026-01": 143.2
+        },
+        "analise_ia": "Produto com potencial - otimizar para aumentar as vendas"
       },
       {
         "produto": "ANCHO ANGUS ACMP IFOOD",
@@ -47469,50 +47513,6 @@
           "2024-06": 0.02
         },
         "analise_ia": "Baixo desempenho - avaliar necessidade e promover"
-      },
-      {
-        "produto": "ESPET CORAÇÃO DE FRANGO IFOOD",
-        "valor_total": 7999.3,
-        "classe": "B",
-        "historico": {
-          "2022-12": 174.9,
-          "2023-01": 349.8,
-          "2023-02": 190.8,
-          "2023-03": 47.7,
-          "2023-04": 127.2,
-          "2023-05": 190.8,
-          "2023-06": 318.0,
-          "2023-07": 174.9,
-          "2023-08": 254.4,
-          "2023-09": 318.0,
-          "2023-10": 222.6,
-          "2023-11": 79.5,
-          "2024-02": 111.3,
-          "2024-03": 270.3,
-          "2024-04": 389.8,
-          "2024-05": 286.4,
-          "2024-06": 107.4,
-          "2024-07": 286.4,
-          "2024-08": 304.3,
-          "2024-09": 125.3,
-          "2024-10": 179.0,
-          "2024-11": 179.0,
-          "2024-12": 268.5,
-          "2025-01": 232.7,
-          "2025-02": 196.9,
-          "2025-03": 358.0,
-          "2025-04": 250.6,
-          "2025-05": 250.6,
-          "2025-06": 214.8,
-          "2025-07": 268.5,
-          "2025-08": 161.1,
-          "2025-09": 107.4,
-          "2025-10": 250.6,
-          "2025-11": 304.3,
-          "2025-12": 304.3,
-          "2026-01": 143.2
-        },
-        "analise_ia": "Produto com potencial - otimizar para aumentar as vendas"
       }
     ]
   },
@@ -49903,6 +49903,16 @@
         "analise_ia": "Produto com potencial - otimizar exposição e oferta."
       },
       {
+        "produto": "LING FINA FRANGO",
+        "valor_total": 376.47,
+        "classe": "B",
+        "historico": {
+          "2025-12": 289.76,
+          "2026-01": 86.71
+        },
+        "analise_ia": "Produto com potencial - avaliar estratégia de venda"
+      },
+      {
         "produto": "FACA 6 ANEL PRETO",
         "valor_total": 369.9,
         "classe": "C",
@@ -50239,6 +50249,15 @@
         "analise_ia": "Baixo desempenho - avaliar preço e visibilidade"
       },
       {
+        "produto": "VT PIZZATO CONCENTUS 750ML",
+        "valor_total": 220.0,
+        "classe": "C",
+        "historico": {
+          "2026-01": 220.0
+        },
+        "analise_ia": "Baixo giro - considerar ações para aumentar vendas"
+      },
+      {
         "produto": "CACHACA MP OURO 1L",
         "valor_total": 209.7,
         "classe": "C",
@@ -50397,6 +50416,15 @@
           "2026-01": 29.98
         },
         "analise_ia": "Baixo desempenho - avaliar preço e visibilidade"
+      },
+      {
+        "produto": "VT FAUSTO CABERNET SUAV 750ML",
+        "valor_total": 160.0,
+        "classe": "C",
+        "historico": {
+          "2026-01": 160.0
+        },
+        "analise_ia": "Baixo giro - avaliar ações de marketing"
       },
       {
         "produto": "CHAPA DE PESCADOS",
@@ -51403,34 +51431,6 @@
           "2026-01": 2.0
         },
         "analise_ia": "Produto com baixa demanda - avaliar estratégia de venda"
-      },
-      {
-        "produto": "LING FINA FRANGO",
-        "valor_total": 376.47,
-        "classe": "B",
-        "historico": {
-          "2025-12": 289.76,
-          "2026-01": 86.71
-        },
-        "analise_ia": "Produto com potencial - avaliar estratégia de venda"
-      },
-      {
-        "produto": "VT PIZZATO CONCENTUS 750ML",
-        "valor_total": 220.0,
-        "classe": "C",
-        "historico": {
-          "2026-01": 220.0
-        },
-        "analise_ia": "Baixo giro - considerar ações para aumentar vendas"
-      },
-      {
-        "produto": "VT FAUSTO CABERNET SUAV 750ML",
-        "valor_total": 160.0,
-        "classe": "C",
-        "historico": {
-          "2026-01": 160.0
-        },
-        "analise_ia": "Baixo giro - avaliar ações de marketing"
       }
     ]
   },
