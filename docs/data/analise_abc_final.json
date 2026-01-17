@@ -2729,6 +2729,15 @@
         "analise_ia": "Produto com potencial, analisar demanda e promover."
       },
       {
+        "produto": "PROMO CREMOSO COSTELA",
+        "valor_total": 717.6,
+        "classe": "B",
+        "historico": {
+          "2026-01": 717.6
+        },
+        "analise_ia": "Produto com bom potencial - manter e avaliar promoções"
+      },
+      {
         "produto": "PAO DE ALHO UN",
         "valor_total": 683.3,
         "classe": "B",
@@ -4739,6 +4748,15 @@
         "analise_ia": "Manter - produto com demanda constante"
       },
       {
+        "produto": "BATATA RUSTICA",
+        "valor_total": 42.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 42.9
+        },
+        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
+      },
+      {
         "produto": "AGUA TONICA",
         "valor_total": 41.5,
         "classe": "C",
@@ -4835,6 +4853,15 @@
           "2025-03": 7.9
         },
         "analise_ia": "Baixa procura - avaliar e ajustar estratégia"
+      },
+      {
+        "produto": "SALADA DE FRANGO CREMOSA EXEC",
+        "valor_total": 35.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 35.9
+        },
+        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
       },
       {
         "produto": "DRINK CAIPIRINHA",
@@ -5043,6 +5070,15 @@
           "2025-08": 24.9
         },
         "analise_ia": "Baixo giro - avaliar visibilidade e promoções"
+      },
+      {
+        "produto": "FEIJAO DE CALDO INTEIRO",
+        "valor_total": 22.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 22.9
+        },
+        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
       },
       {
         "produto": "DRINK SODA ITALIANA",
@@ -5301,6 +5337,15 @@
           "2026-01": 14.9
         },
         "analise_ia": "Potencial baixo - avaliar promoções ou substituições"
+      },
+      {
+        "produto": "H2O LIMAO",
+        "valor_total": 14.9,
+        "classe": "C",
+        "historico": {
+          "2026-01": 14.9
+        },
+        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
       },
       {
         "produto": "DESCONTO DELIVERY IFOOD",
@@ -5624,51 +5669,6 @@
           "2025-12": 0.01
         },
         "analise_ia": "Baixo giro - avaliar promoção ou descontinuar"
-      },
-      {
-        "produto": "PROMO CREMOSO COSTELA",
-        "valor_total": 717.6,
-        "classe": "B",
-        "historico": {
-          "2026-01": 717.6
-        },
-        "analise_ia": "Produto com bom potencial - manter e avaliar promoções"
-      },
-      {
-        "produto": "BATATA RUSTICA",
-        "valor_total": 42.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 42.9
-        },
-        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
-      },
-      {
-        "produto": "SALADA DE FRANGO CREMOSA EXEC",
-        "valor_total": 35.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 35.9
-        },
-        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
-      },
-      {
-        "produto": "FEIJAO DE CALDO INTEIRO",
-        "valor_total": 22.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 22.9
-        },
-        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
-      },
-      {
-        "produto": "H2O LIMAO",
-        "valor_total": 14.9,
-        "classe": "C",
-        "historico": {
-          "2026-01": 14.9
-        },
-        "analise_ia": "Baixa procura - avaliar visibilidade e promoções"
       }
     ]
   },
@@ -11263,6 +11263,40 @@
         "analise_ia": "Produto com potencial, analisar sazonalidade e promoções."
       },
       {
+        "produto": "BATATA FRITA DE VERDADE",
+        "valor_total": 3953.0,
+        "classe": "B",
+        "historico": {
+          "2023-06": 179.4,
+          "2023-07": 119.6,
+          "2023-08": 239.2,
+          "2023-09": 59.8,
+          "2023-10": 59.8,
+          "2023-11": 59.8,
+          "2023-12": 299.0,
+          "2024-01": 119.6,
+          "2024-02": 119.6,
+          "2024-03": 119.6,
+          "2024-05": 239.2,
+          "2024-06": 59.8,
+          "2024-07": 119.6,
+          "2024-09": 119.6,
+          "2024-12": 119.6,
+          "2025-02": 59.8,
+          "2025-03": 185.6,
+          "2025-04": 299.0,
+          "2025-06": 418.6,
+          "2025-07": 59.8,
+          "2025-08": 239.2,
+          "2025-09": 119.6,
+          "2025-10": 119.6,
+          "2025-11": 179.4,
+          "2025-12": 119.6,
+          "2026-01": 119.6
+        },
+        "analise_ia": "Produto com potencial - otimizar a disponibilidade"
+      },
+      {
         "produto": "MINI PASTEIS CARNE SECA CHEDDA",
         "valor_total": 3919.0,
         "classe": "C",
@@ -13431,40 +13465,6 @@
           "2023-06": 0.01
         },
         "analise_ia": "Baixa procura - avaliar e otimizar a oferta."
-      },
-      {
-        "produto": "BATATA FRITA DE VERDADE",
-        "valor_total": 3953.0,
-        "classe": "B",
-        "historico": {
-          "2023-06": 179.4,
-          "2023-07": 119.6,
-          "2023-08": 239.2,
-          "2023-09": 59.8,
-          "2023-10": 59.8,
-          "2023-11": 59.8,
-          "2023-12": 299.0,
-          "2024-01": 119.6,
-          "2024-02": 119.6,
-          "2024-03": 119.6,
-          "2024-05": 239.2,
-          "2024-06": 59.8,
-          "2024-07": 119.6,
-          "2024-09": 119.6,
-          "2024-12": 119.6,
-          "2025-02": 59.8,
-          "2025-03": 185.6,
-          "2025-04": 299.0,
-          "2025-06": 418.6,
-          "2025-07": 59.8,
-          "2025-08": 239.2,
-          "2025-09": 119.6,
-          "2025-10": 119.6,
-          "2025-11": 179.4,
-          "2025-12": 119.6,
-          "2026-01": 119.6
-        },
-        "analise_ia": "Produto com potencial - otimizar a disponibilidade"
       }
     ]
   },
@@ -25132,6 +25132,15 @@
         "analise_ia": "Produto com potencial - avaliar promoções ou visibilidade."
       },
       {
+        "produto": "MEIO DA ASA TEMPERADO",
+        "valor_total": 23.69,
+        "classe": "C",
+        "historico": {
+          "2026-01": 23.69
+        },
+        "analise_ia": "Baixo giro - avaliar promoção ou reduzir estoque"
+      },
+      {
         "produto": "CAIPIRINHA DE MORANGO",
         "valor_total": 23.0,
         "classe": "C",
@@ -25952,15 +25961,6 @@
           "2025-11": 0.01
         },
         "analise_ia": "Baixa procura - promover ou reduzir preparo."
-      },
-      {
-        "produto": "MEIO DA ASA TEMPERADO",
-        "valor_total": 23.69,
-        "classe": "C",
-        "historico": {
-          "2026-01": 23.69
-        },
-        "analise_ia": "Baixo giro - avaliar promoção ou reduzir estoque"
       }
     ]
   },
@@ -27709,6 +27709,15 @@
         "analise_ia": "Baixa procura - avaliar promoções ou descontinuar"
       },
       {
+        "produto": "SUCO DELL VALE UVA LT",
+        "valor_total": 12.0,
+        "classe": "C",
+        "historico": {
+          "2026-01": 12.0
+        },
+        "analise_ia": "Baixa demanda - avaliar necessidade de estoque"
+      },
+      {
         "produto": "PIMENTA SRIEACHA IFOOD",
         "valor_total": 5.0,
         "classe": "C",
@@ -27725,15 +27734,6 @@
           "2025-09": 5.0
         },
         "analise_ia": "Baixa procura - avaliar promoções ou descontinuar"
-      },
-      {
-        "produto": "SUCO DELL VALE UVA LT",
-        "valor_total": 12.0,
-        "classe": "C",
-        "historico": {
-          "2026-01": 12.0
-        },
-        "analise_ia": "Baixa demanda - avaliar necessidade de estoque"
       }
     ]
   },
@@ -44589,6 +44589,22 @@
         "analise_ia": "Produto com potencial - otimizar para aumentar as vendas"
       },
       {
+        "produto": "SOBRECOXA DE FRANGO EXEC",
+        "valor_total": 7964.96,
+        "classe": "B",
+        "historico": {
+          "2025-06": 179.56,
+          "2025-07": 2064.94,
+          "2025-08": 1454.57,
+          "2025-09": 889.09,
+          "2025-10": 1172.5,
+          "2025-11": 609.7,
+          "2025-12": 1031.8,
+          "2026-01": 562.8
+        },
+        "analise_ia": "Produto com demanda variável - otimizar estoque e promoções"
+      },
+      {
         "produto": "FILE DE PEIXE GRELHA EXEC",
         "valor_total": 7874.7,
         "classe": "C",
@@ -48091,22 +48107,6 @@
           "2024-06": 0.02
         },
         "analise_ia": "Baixo desempenho - avaliar necessidade e promover"
-      },
-      {
-        "produto": "SOBRECOXA DE FRANGO EXEC",
-        "valor_total": 7964.96,
-        "classe": "B",
-        "historico": {
-          "2025-06": 179.56,
-          "2025-07": 2064.94,
-          "2025-08": 1454.57,
-          "2025-09": 889.09,
-          "2025-10": 1172.5,
-          "2025-11": 609.7,
-          "2025-12": 1031.8,
-          "2026-01": 562.8
-        },
-        "analise_ia": "Produto com demanda variável - otimizar estoque e promoções"
       }
     ]
   },
@@ -49540,6 +49540,16 @@
         "analise_ia": "Produto com potencial - otimizar a disponibilidade."
       },
       {
+        "produto": "FRALDINHA ESTANCIA 92",
+        "valor_total": 1858.84,
+        "classe": "A",
+        "historico": {
+          "2025-12": 596.36,
+          "2026-01": 1262.48
+        },
+        "analise_ia": "Produto de alto giro - garantir estoque e visibilidade."
+      },
+      {
         "produto": "QUEIJO COALHO PACOTE",
         "valor_total": 1852.16,
         "classe": "A",
@@ -49655,6 +49665,45 @@
           "2025-12": 57.9
         },
         "analise_ia": "Manter oferta - avaliar sazonalidade e promoções pontuais."
+      },
+      {
+        "produto": "CARVÃO 3KG",
+        "valor_total": 1529.49,
+        "classe": "A",
+        "historico": {
+          "2025-12": 989.67,
+          "2026-01": 539.82
+        },
+        "analise_ia": "Produto de alto giro - otimizar exposição e disponibilidade."
+      },
+      {
+        "produto": "FEIJAO TROPEIRO",
+        "valor_total": 1505.3,
+        "classe": "B",
+        "historico": {
+          "2023-11": 25.9,
+          "2023-12": 129.5,
+          "2024-01": 77.7,
+          "2024-02": 233.1,
+          "2024-03": 233.1,
+          "2024-04": 52.8,
+          "2024-05": 80.7,
+          "2024-06": 53.8,
+          "2024-07": 134.5,
+          "2024-09": 53.8,
+          "2024-10": 53.8,
+          "2024-11": 53.8,
+          "2025-02": 53.8,
+          "2025-03": 53.8,
+          "2025-05": 26.9,
+          "2025-06": 26.9,
+          "2025-07": 26.9,
+          "2025-08": 26.9,
+          "2025-09": 26.9,
+          "2025-10": 53.8,
+          "2026-01": 26.9
+        },
+        "analise_ia": "Demanda estável - avaliar promoções para impulsionar."
       },
       {
         "produto": "PALETA CORD URUGUAIA TEMPERADO",
@@ -50498,6 +50547,16 @@
           "2025-12": 369.9
         },
         "analise_ia": "Produto com potencial - manter visibilidade e oferta."
+      },
+      {
+        "produto": "VT YLLERA 750ML",
+        "valor_total": 359.8,
+        "classe": "B",
+        "historico": {
+          "2025-12": 179.9,
+          "2026-01": 179.9
+        },
+        "analise_ia": "Demanda moderada - considerar ações de destaque."
       },
       {
         "produto": "PARMEGIANA DO CASAL+2COCA",
@@ -51589,6 +51648,15 @@
         "analise_ia": "Produto com potencial - garantir estoque e visibilidade"
       },
       {
+        "produto": "LOMBO SUINO TEMPERADO",
+        "valor_total": 34.25,
+        "classe": "C",
+        "historico": {
+          "2026-01": 34.25
+        },
+        "analise_ia": "Baixa saída - avaliar ações de marketing ou descontinuar."
+      },
+      {
         "produto": "SANTA SALADA EXEC",
         "valor_total": 33.9,
         "classe": "C",
@@ -51957,74 +52025,6 @@
           "2026-01": 2.0
         },
         "analise_ia": "Produto com baixa demanda - avaliar estratégia de venda"
-      },
-      {
-        "produto": "FRALDINHA ESTANCIA 92",
-        "valor_total": 1858.84,
-        "classe": "A",
-        "historico": {
-          "2025-12": 596.36,
-          "2026-01": 1262.48
-        },
-        "analise_ia": "Produto de alto giro - garantir estoque e visibilidade."
-      },
-      {
-        "produto": "CARVÃO 3KG",
-        "valor_total": 1529.49,
-        "classe": "A",
-        "historico": {
-          "2025-12": 989.67,
-          "2026-01": 539.82
-        },
-        "analise_ia": "Produto de alto giro - otimizar exposição e disponibilidade."
-      },
-      {
-        "produto": "FEIJAO TROPEIRO",
-        "valor_total": 1505.3,
-        "classe": "B",
-        "historico": {
-          "2023-11": 25.9,
-          "2023-12": 129.5,
-          "2024-01": 77.7,
-          "2024-02": 233.1,
-          "2024-03": 233.1,
-          "2024-04": 52.8,
-          "2024-05": 80.7,
-          "2024-06": 53.8,
-          "2024-07": 134.5,
-          "2024-09": 53.8,
-          "2024-10": 53.8,
-          "2024-11": 53.8,
-          "2025-02": 53.8,
-          "2025-03": 53.8,
-          "2025-05": 26.9,
-          "2025-06": 26.9,
-          "2025-07": 26.9,
-          "2025-08": 26.9,
-          "2025-09": 26.9,
-          "2025-10": 53.8,
-          "2026-01": 26.9
-        },
-        "analise_ia": "Demanda estável - avaliar promoções para impulsionar."
-      },
-      {
-        "produto": "VT YLLERA 750ML",
-        "valor_total": 359.8,
-        "classe": "B",
-        "historico": {
-          "2025-12": 179.9,
-          "2026-01": 179.9
-        },
-        "analise_ia": "Demanda moderada - considerar ações de destaque."
-      },
-      {
-        "produto": "LOMBO SUINO TEMPERADO",
-        "valor_total": 34.25,
-        "classe": "C",
-        "historico": {
-          "2026-01": 34.25
-        },
-        "analise_ia": "Baixa saída - avaliar ações de marketing ou descontinuar."
       }
     ]
   },
