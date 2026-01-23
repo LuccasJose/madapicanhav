@@ -394,7 +394,15 @@
     "SALADA CAESAR IND|C": "Avaliar a demanda - considerar promoções",
     "RED BULL TRADICIONAL 250 ML|C": "Avaliar a demanda - considerar promoções",
     "PETIT GATEAU|C": "Avaliar a demanda - considerar promoções",
-    "FAROFA DE OVOS INTEIRO|C": "Avaliar a demanda - considerar promoções"
+    "FAROFA DE OVOS INTEIRO|C": "Avaliar a demanda - considerar promoções",
+    "COCA COLA 350ML|A": "Produto com alto potencial - garantir estoque e visibilidade",
+    "FETTUCCINE GRANA C PICANHA IND|C": "Produto com baixa demanda - avaliar promoção ou descontinuar",
+    "RISOTO DE CAMARAO IND|C": "Produto com baixa demanda - avaliar promoção ou descontinuar",
+    "ANCHO DOS DEUSES EXEC|C": "Produto com baixa demanda - avaliar promoção ou descontinuar",
+    "BURGER MP DUPLO CHEDAR+ BATATA|C": "Produto com baixa demanda - avaliar promoção ou descontinuar",
+    "SUCO MARACUJA COM MORANGO|C": "Produto com baixa demanda - avaliar promoção ou descontinuar",
+    "FAROFA DA CASA INTEIRO|C": "Produto com baixa demanda - avaliar promoção ou descontinuar",
+    "SUCO DE MORANGO|C": "Produto com baixa demanda - avaliar promoção ou descontinuar"
   },
   "14": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial, manter a oferta e avaliar sazonalidade.",
@@ -1693,7 +1701,11 @@
     "FETTUCCINE DE FILE SUINO EXEC|C": "Produto com baixa receita - avaliar e ajustar",
     "ESPET QUEIJO COALHO IFOOD|C": "Produto com baixa receita - avaliar e ajustar",
     "CHOPP VINHO 500ML|C": "Produto com baixa receita - avaliar e ajustar",
-    "TAXA BRINQUEDOTECA|C": "Produto com baixa receita - avaliar e ajustar"
+    "TAXA BRINQUEDOTECA|C": "Produto com baixa receita - avaliar e ajustar",
+    "FEIJAO DE CALDO INTEIRO|B": "Produto com potencial - manter e otimizar exposição",
+    "CERVEJA AMSTEL 600ML|C": "Baixo desempenho - avaliar promoção ou descontinuar",
+    "SUCO MARACUJA COM MORANGO|C": "Recente - monitorar desempenho e demanda",
+    "FANTA LARANJA 350ML|C": "Recente - monitorar desempenho e demanda"
   },
   "20": {
     "PRATO COMBINADO 2 PESSOAS 34|A": "Produto com potencial, manter oferta e visibilidade.",
@@ -2379,7 +2391,16 @@
     "PROMO CROQUETA DE CARNE|B": "Demanda moderada - avaliar promoções e visibilidade",
     "CABARE PURO MALTE LONG NECK|B": "Demanda moderada - analisar sazonalidade e estoque",
     "ESPUM CONDE FOUCALD BRANCO 750|C": "Baixa saída - avaliar preço e visibilidade",
-    "COXA E SOBRECOXA FUNCIONARIO|C": "Baixa saída - avaliar preço e visibilidade"
+    "COXA E SOBRECOXA FUNCIONARIO|C": "Baixa saída - avaliar preço e visibilidade",
+    "CERVEJA PETRA ESCURA LN 330ML|B": "Produto com potencial - monitorar e otimizar estoque",
+    "ESPUM CONDE FOUCALD BRANCO 750|B": "Produto com potencial - avaliar demanda e promover",
+    "ESTROGONOFE DE FRANGO IND|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "CORONA LN|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "WHISKY J W RED LABEL DOSE|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "RED BULL TRADICIONAL 250 ML|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "HEINEKEN LN|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "COCA COLA 350 ML|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "TALHER DESCARTAVEL IFOOD|C": "Baixo giro - avaliar preço ou reduzir preparo"
   },
   "5": {
     "1 PIZZA CALABRESA G (IFOOD)|A": "Produto com potencial de crescimento - otimizar estoque",
@@ -3275,7 +3296,16 @@
     "CB FETTUCCINE GRANDAPADANO|C": "Baixo desempenho - revisar precificação ou visibilidade",
     "CB ANCHO ANGUS|C": "Baixo desempenho - revisar precificação ou visibilidade",
     "CB RISOTO GRANAPADANO|C": "Baixo desempenho - revisar precificação ou visibilidade",
-    "CB FETUCCINE CREME LIMAO SICIL|C": "Baixo desempenho - revisar precificação ou visibilidade"
+    "CB FETUCCINE CREME LIMAO SICIL|C": "Baixo desempenho - revisar precificação ou visibilidade",
+    "SALADA CAESAR EXEC|B": "Produto com potencial - otimizar exposição e oferta",
+    "CUPIM GRILL + 2 GUARNICOES|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "PUDIM DE LEITE|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "AGUA COM GAS|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "PAO DE ALHO|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "ARROZ A PIAMONTESE PEQ|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "MANDIOCA COZIDA PEQ|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "MOUSSE DE MARACUJA|C": "Baixo desempenho - avaliar e impulsionar vendas",
+    "AGUA SEM GAS|C": "Baixo desempenho - avaliar e impulsionar vendas"
   },
   "7": {
     "PIZZA G FRANGO COM CATUPIRY|A": "Produto com potencial - otimizar estoque e divulgação",
@@ -3715,7 +3745,12 @@
     "LOMBO SUINO TEMPERADO|C": "Baixa saída - avaliar ações de marketing ou descontinuar.",
     "STEAK WAGYU|B": "Produto com bom potencial - avaliar promoções",
     "ESPETO CUPIM GRILL KG|B": "Produto com bom potencial - avaliar promoções",
-    "RED BULL TRADICIONAL 250 ML|C": "Baixa procura - avaliar visibilidade e preço"
+    "RED BULL TRADICIONAL 250 ML|C": "Baixa procura - avaliar visibilidade e preço",
+    "CHORIZO STEAK ANGUS|A": "Produto de alto valor - manter visibilidade e estoque",
+    "KIT CELEBRAÇÃO|B": "Demanda moderada - avaliar promoções e visibilidade",
+    "ESPETO BABY BEEF KG|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "CHORIPAN AURORA 400GR|C": "Baixo giro - avaliar preço ou reduzir preparo",
+    "SALSICHA VIENA APERITIVO|C": "Baixo giro - avaliar preço ou reduzir preparo"
   },
   "9": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial - monitorar sazonalidade e promoções",
@@ -4768,6 +4803,7 @@
     "COSTELA|B": "Produto com potencial - avaliar promoções e visibilidade",
     "COCA COLA 2LT|A": "Produto com potencial - otimizar estoque e promoções",
     "SALADA CAESAR|B": "Produto com potencial - avaliar sazonalidade e promoções",
-    "FRALDINHA NA MOSTARDA|A": "Produto com potencial - monitorar e otimizar a oferta"
+    "FRALDINHA NA MOSTARDA|A": "Produto com potencial - monitorar e otimizar a oferta",
+    "ESPETINHO CUPIM GRILL|B": "Produto com potencial - otimizar exposição e promoções"
   }
 }
