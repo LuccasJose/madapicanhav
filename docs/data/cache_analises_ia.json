@@ -422,7 +422,11 @@
     "CB FEIJAO TROPEIRO|C": "Baixo giro - avaliar necessidade ou descontinuar",
     "CB VINAGRETE|C": "Baixo giro - avaliar necessidade ou descontinuar",
     "CB ARROZ BRANCO|C": "Baixo giro - avaliar necessidade ou descontinuar",
-    "CB COCA COLA ZERO 350ML|C": "Baixo giro - avaliar necessidade ou descontinuar"
+    "CB COCA COLA ZERO 350ML|C": "Baixo giro - avaliar necessidade ou descontinuar",
+    "STROGONOFF DE FRANGO EXEC|A": "Produto de alta demanda - garantir estoque e visibilidade",
+    "PICOLE ABACAXI C/ HORTELA|B": "Demanda instável - avaliar sazonalidade e promoções",
+    "CB ANCHO ANGUS|C": "Baixa saída - avaliar a necessidade de manter no cardápio",
+    "CB FRITAS|C": "Baixa saída - avaliar a necessidade de manter no cardápio"
   },
   "14": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial, manter a oferta e avaliar sazonalidade.",
@@ -2104,7 +2108,10 @@
     "CERVEJA HEINEKEN 600ML|C": "Baixo volume - avaliar promoção ou reformulação",
     "COXINHA DA ASA TEMPERADA|C": "Baixo volume - avaliar promoção ou reformulação",
     "ARROZ COM ALHO INTEIRO|C": "Baixo volume - avaliar promoção ou reformulação",
-    "MEIO VINAGRETE|C": "Baixo volume - avaliar promoção ou reformulação"
+    "MEIO VINAGRETE|C": "Baixo volume - avaliar promoção ou reformulação",
+    "KIT PREMIUM|B": "Potencial moderado - avaliar promoções e visibilidade",
+    "BATATA 200G + CHEDDAR E BACON|B": "Potencial moderado - otimizar exposição e oferta",
+    "ESPETINHO KAFTA BOVINA|C": "Baixo giro - considerar ajustes ou descontinuar"
   },
   "4": {
     "FICHA FLIPERAMA|A": "Produto com potencial, otimizar estoque e promoções.",
@@ -2987,7 +2994,9 @@
     "PIZZA G FRANGO COM CATUPIRY|A": "Produto com bom potencial - manter destaque",
     "PIZZA G CARNE SECA COM BANANA|C": "Baixo volume - avaliar continuidade ou promoções",
     "PIZZA P MARGUERITA|C": "Volume baixo - avaliar estratégia de vendas",
-    "PROMO ESFIRRA BANANA NEVADA|C": "Volume insignificante - descontinuar ou revisar"
+    "PROMO ESFIRRA BANANA NEVADA|C": "Volume insignificante - descontinuar ou revisar",
+    "CB CALZONE DE PIZZA|C": "Baixo giro - avaliar promoção ou descontinuar",
+    "CB PIZZA P MANDA PIZZA|C": "Baixo giro - avaliar promoção ou descontinuar"
   },
   "6": {
     "PARMEGIANA IND IFOOD|A": "Produto com potencial de crescimento - investir em divulgação.",
@@ -3366,7 +3375,8 @@
     "ESPETINHO CORACAO DE FRANGO|C": "Recente - monitorar desempenho e demanda",
     "ARROZ BIRO BIRO INTEIRO|C": "Recente - monitorar desempenho e demanda",
     "ESPETINHO TULIPINHA|C": "Recente - monitorar desempenho e demanda",
-    "SALADA FRANGO GRELHADO|C": "Recente - monitorar desempenho e demanda"
+    "SALADA FRANGO GRELHADO|C": "Recente - monitorar desempenho e demanda",
+    "GUARANA LATA IFOOD|B": "Produto com potencial de crescimento - otimizar estoque"
   },
   "7": {
     "PIZZA G FRANGO COM CATUPIRY|A": "Produto com potencial - otimizar estoque e divulgação",
@@ -3825,7 +3835,10 @@
     "ESPETO INOX BARRA CHAPA|C": "Produto com baixa demanda - rever estratégia de venda",
     "ARROZ DE BACALHAU 4P|C": "Produto com baixa demanda - avaliar a continuidade",
     "PALETA CORDEIRO 1953|C": "Produto com baixa demanda - avaliar a continuidade",
-    "SAL PARRILLA ORIGINAL 500G|C": "Produto com baixa demanda - avaliar a continuidade"
+    "SAL PARRILLA ORIGINAL 500G|C": "Produto com baixa demanda - avaliar a continuidade",
+    "BACON FATIADO|B": "Produto com bom potencial - manter e avaliar promoções",
+    "SAL PARRILLA ERVAS FINAS 450G|C": "Baixo giro - avaliar visibilidade e preço",
+    "SALSICHA COM ALHO|C": "Baixo giro - avaliar visibilidade e preço"
   },
   "9": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial - monitorar sazonalidade e promoções",
