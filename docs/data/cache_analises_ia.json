@@ -434,7 +434,8 @@
     "CB PARME MIG + 1COCA + 1MOUSE|C": "Baixa procura - avaliar e promover",
     "PANCETA PREMIUM KG|C": "Baixa procura - avaliar e promover",
     "BANANA A MILANESA INTEIRO|C": "Baixa procura - avaliar e promover",
-    "LINGUIÇA TOSCANA NA BRASA|C": "Baixa procura - avaliar e promover"
+    "LINGUIÇA TOSCANA NA BRASA|C": "Baixa procura - avaliar e promover",
+    "BURGER BACON & SWEET MP|C": "Baixo giro - avaliar promoção ou descontinuar"
   },
   "14": {
     "FILE MIGNON PARMEGIANA 2P|A": "Produto com potencial, manter a oferta e avaliar sazonalidade.",
@@ -2137,7 +2138,9 @@
     "PUDIM DE LEITE|C": "Produto de baixa saída - avaliar e otimizar",
     "RED BULL MELANCIA 250 ML|C": "Produto de baixa saída - avaliar e otimizar",
     "SUCO DE CAJU|C": "Produto de baixa saída - avaliar e otimizar",
-    "PICOLE MORANGO C/ LEITE COND|C": "Produto de baixa saída - avaliar e otimizar"
+    "PICOLE MORANGO C/ LEITE COND|C": "Produto de baixa saída - avaliar e otimizar",
+    "PICANHA FRIBOI BLACK|B": "Produto com bom potencial - avaliar promoções",
+    "CREME DE MARACUJA|C": "Baixa procura - avaliar a necessidade do produto"
   },
   "4": {
     "FICHA FLIPERAMA|A": "Produto com potencial, otimizar estoque e promoções.",
@@ -4956,6 +4959,7 @@
     "COCA COLA 2LT|A": "Produto com potencial - otimizar estoque e promoções",
     "SALADA CAESAR|B": "Produto com potencial - avaliar sazonalidade e promoções",
     "FRALDINHA NA MOSTARDA|A": "Produto com potencial - monitorar e otimizar a oferta",
-    "ESPETINHO CUPIM GRILL|B": "Produto com potencial - otimizar exposição e promoções"
+    "ESPETINHO CUPIM GRILL|B": "Produto com potencial - otimizar exposição e promoções",
+    "PICOLE ABACAXI C/ HORTELA|B": "Produto com potencial - otimizar exposição e promoções"
   }
 }
