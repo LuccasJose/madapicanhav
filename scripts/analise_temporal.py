@@ -146,7 +146,11 @@ def preparar_dados(
 # ==========================================
 
 def selecionar_top_bottom(df_mes: pd.DataFrame) -> pd.DataFrame:
-    """Seleciona TOP N e BOTTOM N do mês."""
+    """Seleciona TOP N e BOTTOM N do mês.
+
+    Quando há menos de 10 produtos no ranking inferior, rotula como 'MENOS VENDIDOS'
+    ao invés de 'BOTTOM 10' para maior coerência.
+    """
     df_mes = df_mes.sort_values(by='valor_limpo', ascending=False)
     total = len(df_mes)
 
@@ -162,7 +166,11 @@ def selecionar_top_bottom(df_mes: pd.DataFrame) -> pd.DataFrame:
     top['tipo_ranking'] = f'TOP {TOP_N}'
 
     bottom = df_mes.tail(BOTTOM_N).copy()
-    bottom['tipo_ranking'] = f'BOTTOM {BOTTOM_N}'
+    # Se há menos de 10 produtos, rotula como 'MENOS VENDIDOS'
+    if len(bottom) < BOTTOM_N:
+        bottom['tipo_ranking'] = 'MENOS VENDIDOS'
+    else:
+        bottom['tipo_ranking'] = f'BOTTOM {BOTTOM_N}'
 
     return pd.concat([top, bottom], ignore_index=True)
 

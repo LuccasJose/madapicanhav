@@ -16,8 +16,27 @@ import sys
 import time
 from datetime import datetime
 from typing import Any, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
+
+# ==========================================
+# TIMING E LOGGING DE PERFORMANCE
+# ==========================================
+class TimingContext:
+    """Context manager para medir tempo de execução de etapas."""
+    def __init__(self, label: str):
+        self.label = label
+        self.start_time = None
+
+    def __enter__(self):
+        self.start_time = time.time()
+        logger.info(f"⏱️  Iniciando: {self.label}")
+        return self
+
+    def __exit__(self, *args):
+        elapsed = time.time() - self.start_time
+        logger.info(f"✅ Concluído: {self.label} ({elapsed:.2f}s)")
 
 from shared import (
     COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA, COL_GRUPO, COL_TIPO_PRODUTO2,
@@ -26,6 +45,7 @@ from shared import (
     remover_ruidos, filtrar_por_categoria, listar_categorias,
     configurar_ia, chamar_ia_com_retry, converter_id_loja,
     salvar_json as _salvar_json, gerar_sufixo_categoria,
+    DELAY_ENTRE_CHAMADAS, MAX_TENTATIVAS_RATE_LIMIT, DELAY_BASE_RATE_LIMIT, logger,
 )
 
 logging.basicConfig(
@@ -102,7 +122,11 @@ def agregar_por_periodo(df: pd.DataFrame, coluna_periodo: str) -> pd.DataFrame:
 
 
 def selecionar_top_bottom(df_periodo: pd.DataFrame, top_n: int = TOP_N, bottom_n: int = BOTTOM_N) -> pd.DataFrame:
-    """Seleciona TOP e BOTTOM produtos de um período."""
+    """Seleciona TOP e BOTTOM produtos de um período.
+
+    Quando há menos de 10 produtos no ranking inferior, rotula como 'MENOS VENDIDOS'
+    ao invés de 'BOTTOM 10' para maior coerência.
+    """
     df_sorted = df_periodo.sort_values('valor_limpo', ascending=False)
 
     # TOP N
@@ -110,8 +134,14 @@ def selecionar_top_bottom(df_periodo: pd.DataFrame, top_n: int = TOP_N, bottom_n
     top['tipo'] = 'TOP'
 
     # BOTTOM N (com vendas > 0)
-    bottom = df_sorted[df_sorted['valor_limpo'] > 0].tail(bottom_n).copy()
-    bottom['tipo'] = 'BOTTOM'
+    bottom_com_vendas = df_sorted[df_sorted['valor_limpo'] > 0]
+    bottom = bottom_com_vendas.tail(bottom_n).copy()
+
+    # Se há menos de 10 produtos, rotula como 'MENOS VENDIDOS'
+    if len(bottom) < bottom_n:
+        bottom['tipo'] = 'MENOS VENDIDOS'
+    else:
+        bottom['tipo'] = 'BOTTOM'
 
     return pd.concat([top, bottom], ignore_index=True)
 
@@ -280,104 +310,87 @@ def _processar_granularidades(
     return arquivos_gerados
 
 
-def main():
+def main(csv_path, all_flag=False, gerar_por_categoria=False):
     """Executa análise temporal multi-granularidade."""
-    args = parse_args()
-    coluna_filtro = COL_TIPO_PRODUTO2 if args.coluna_filtro == 'tipo_produto2' else COL_GRUPO
-    inicio = time.time()
-
-    # Se nenhuma granularidade foi selecionada, faz todas
-    fazer_diario = args.diario or args.all or not (args.diario or args.semanal or args.mensal)
-    fazer_semanal = args.semanal or args.all or not (args.diario or args.semanal or args.mensal)
-    fazer_mensal = args.mensal or args.all or not (args.diario or args.semanal or args.mensal)
-
-    logger.info("=" * 60)
+    t0 = time.time()
+    logger.info("=" * 50)
     logger.info("ANÁLISE TEMPORAL MULTI-GRANULARIDADE")
-    if args.categoria:
-        logger.info(f"Filtro: {args.categoria} ({args.coluna_filtro})")
-    if args.gerar_por_categoria:
-        logger.info("Modo: gerar JSONs por macro-categoria (tipo_produto2)")
-    logger.info(f"Granularidades: D={fazer_diario} S={fazer_semanal} M={fazer_mensal}")
-    logger.info("=" * 60)
+    logger.info(f"Arquivo: {csv_path} | All: {all_flag}")
+    if gerar_por_categoria:
+        logger.info("Modo: gerar JSONs por macro-categoria (BEBIDAS, COMIDAS, etc.)")
+    logger.info("=" * 50)
 
-    # Carrega dados (usa shared.carregar_dados)
-    df = carregar_dados(args.arquivo)
+    # Leitura otimizada
+    with TimingContext("Carregamento de dados"):
+        df = carregar_dados(csv_path)
     if df is None:
         logger.error("Falha ao carregar dados")
         return 1
 
-    # Modo listar categorias
-    if args.listar_categorias:
-        cats = listar_categorias(df, coluna_filtro)
-        print(f"\nCategorias disponíveis ({len(cats)}):")
-        for c in cats:
-            print(f"  - {c}")
-        return 0
-
-    # Prepara dados base (remoção de ruídos, sem filtro de categoria ainda)
-    df_base = preparar_dados(
-        df,
-        categoria_alvo=args.categoria if not args.gerar_por_categoria else None,
-        coluna_filtro=coluna_filtro,
-    )
+    # Preparação de dados (limpeza, remoção de ruídos, etc)
+    with TimingContext("Preparação de dados"):
+        df_base = preparar_dados(df)
     if df_base.empty:
         logger.error("Nenhum dado válido após preparação")
         return 1
 
-    # Configura IA (usa shared.configurar_ia)
-    modelo = configurar_ia()
+    # Configurar IA
+    with TimingContext("Configuração de IA"):
+        modelo = configurar_ia()
+
+    # Processar granularidades
+    fazer_diario = all_flag
+    fazer_semanal = all_flag
+    fazer_mensal = all_flag or True  # sempre mensal por padrão
+
     arquivos_gerados = []
 
     # ==========================================
     # MODO: GERAR POR CATEGORIA
-    # Gera JSONs para cada granularidade × cada macro-categoria + consolidado
     # ==========================================
-    if args.gerar_por_categoria:
-        # Consolidado (todas as categorias)
+    if gerar_por_categoria:
+        # Gera JSON consolidado (todas as categorias)
         logger.info("=" * 40)
         logger.info("Gerando análise CONSOLIDADA (todas as categorias)")
-        arquivos_gerados += _processar_granularidades(
-            df_base, modelo, fazer_diario, fazer_semanal, fazer_mensal,
-        )
+        with TimingContext("Processamento consolidado"):
+            arquivos_gerados.extend(_processar_granularidades(
+                df_base, modelo, fazer_mensal, fazer_semanal, fazer_diario, sufixo=""
+            ))
 
-        # Por categoria
+        # Gera JSON para cada macro-categoria
+        from shared import CATEGORIAS_MACRO, COL_TIPO_PRODUTO2, filtrar_por_categoria
         for cat_nome, cat_sufixo in CATEGORIAS_MACRO.items():
             logger.info("=" * 40)
-            logger.info(f"Gerando análise temporal para categoria: {cat_nome}")
-            df_cat = filtrar_por_categoria(df_base, cat_nome, COL_TIPO_PRODUTO2)
-            if df_cat.empty:
-                logger.warning(f"Categoria '{cat_nome}' sem dados — pulando")
-                continue
-            arquivos_gerados += _processar_granularidades(
-                df_cat, modelo, fazer_diario, fazer_semanal, fazer_mensal,
-                sufixo=cat_sufixo,
-            )
+            logger.info(f"Gerando análise para categoria: {cat_nome}")
+            with TimingContext(f"Processamento {cat_nome}"):
+                df_cat = filtrar_por_categoria(df_base, cat_nome, COL_TIPO_PRODUTO2)
+                if df_cat.empty:
+                    logger.warning(f"Categoria '{cat_nome}' sem dados — pulando")
+                    continue
+                arquivos_gerados.extend(_processar_granularidades(
+                    df_cat, modelo, fazer_mensal, fazer_semanal, fazer_diario, sufixo=cat_sufixo
+                ))
     else:
         # ==========================================
-        # MODO: ANÁLISE ÚNICA (padrão ou com --categoria)
+        # MODO: ANÁLISE ÚNICA (padrão)
         # ==========================================
-        arquivos_gerados = _processar_granularidades(
-            df_base, modelo, fazer_diario, fazer_semanal, fazer_mensal,
-        )
+        with TimingContext("Processamento de granularidades"):
+            arquivos_gerados = _processar_granularidades(
+                df_base, modelo, fazer_mensal, fazer_semanal, fazer_diario
+            )
 
-    # Gera arquivo consolidado (índice)
-    consolidado = {
-        "gerado_em": datetime.now().isoformat(),
-        "arquivos": arquivos_gerados,
-        "lojas": sorted(df_base['loja_id'].unique().tolist()),
-        "periodo_dados": {
-            "inicio": df_base['data_obj'].min().strftime('%Y-%m-%d'),
-            "fim": df_base['data_obj'].max().strftime('%Y-%m-%d'),
-        },
-    }
-    salvar_json_local(consolidado, 'consolidado.json')
-
-    # Estatísticas finais
-    tempo_total = time.time() - inicio
-    logger.info(f"\nConcluído em {tempo_total:.1f}s | {len(arquivos_gerados)} arquivos gerados")
+    tempo_total = time.time() - t0
+    logger.info("=" * 50)
+    logger.info(f"✅ Análise concluída!")
+    logger.info(f"Arquivos gerados: {len(arquivos_gerados)}")
+    for arq in arquivos_gerados:
+        logger.info(f"  - {arq}")
+    logger.info(f"⏱️  TEMPO TOTAL: {tempo_total:.2f}s ({tempo_total/60:.2f}min)")
+    logger.info("=" * 50)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    args = parse_args()
+    sys.exit(main(args.arquivo, args.all, args.gerar_por_categoria))
 
