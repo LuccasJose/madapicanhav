@@ -1,35 +1,32 @@
 # -*- coding: utf-8 -*-
 """
 ANÁLISE TEMPORAL MULTI-GRANULARIDADE: DIÁRIO, SEMANAL E MENSAL
-Gera rankings e análises com IA para diferentes períodos temporais.
+Refatorado para usar shared.py — elimina duplicação de funções utilitárias.
 
 Uso:
-    python analise_temporal_multi.py [arquivo_dados] [--diario] [--semanal] [--mensal]
-
-Saída: JSONs separados em mp-main/data/
-    - vendas_diario.json
-    - vendas_semanal.json
-    - vendas_mensal.json
-    - consolidado.json (índice de todos os arquivos)
+    py analise_temporal_multi.py [arquivo] [--diario] [--semanal] [--mensal]
+    py analise_temporal_multi.py dados.csv --categoria CERVEJAS --mensal
 """
 
+import argparse
+import json
+import logging
 import os
 import sys
-import json
 import time
-import logging
-from datetime import datetime, timedelta
-from typing import Optional, Any
+from datetime import datetime
+from typing import Any, Optional
+
 import pandas as pd
 
-# Tenta importar o Gemini
-try:
-    import google.generativeai as genai
-    GEMINI_DISPONIVEL = True
-except ImportError:
-    GEMINI_DISPONIVEL = False
+from shared import (
+    COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA, COL_GRUPO, COL_TIPO_PRODUTO2,
+    carregar_dados, limpar_valor_monetario, validar_colunas,
+    remover_ruidos, filtrar_por_categoria, listar_categorias,
+    configurar_ia, chamar_ia_com_retry, converter_id_loja,
+    salvar_json as _salvar_json,
+)
 
-# Configuração de logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(message)s',
@@ -38,117 +35,46 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ==========================================
-# CONFIGURAÇÕES
+# CONSTANTES ESPECÍFICAS DESTE SCRIPT
 # ==========================================
-NOME_ARQUIVO = sys.argv[1] if len(sys.argv) > 1 else "dados_vendas.csv"
 PASTA_SAIDA = "docs/data"
-
-# Colunas do CSV/XLSX
-COL_LOJA = 'FtoResumoVendaGeralItem[loja_id]'
-COL_PRODUTO = 'FtoResumoVendaGeralItem[material_descr]'
-COL_VALOR = 'FtoResumoVendaGeralItem[vl_total]'
-COL_DATA = 'FtoResumoVendaGeralItem[dt_contabil]'
-
-# Parâmetros
 TOP_N = 10
 BOTTOM_N = 10
 PAUSA_ENTRE_REQUISICOES = 2.0
-MAX_TENTATIVAS_API = 5
-DELAY_ENTRE_CHAMADAS = 12.0  # segundos entre chamadas (reduzido para plano pago)
-
-API_KEY = os.environ.get('GEMINI_API_KEY', '')
-
-# ==========================================
-# FUNÇÕES AUXILIARES
-# ==========================================
-
-def limpar_valor_monetario(valor: Any) -> float:
-    """Converte valor monetário para float."""
-    if pd.isna(valor):
-        return 0.0
-    if isinstance(valor, (int, float)):
-        return float(valor)
-    texto = str(valor).strip()
-    texto = texto.replace('R$', '').replace(' ', '')
-    texto = texto.replace('.', '').replace(',', '.')
-    try:
-        return float(texto)
-    except ValueError:
-        return 0.0
 
 
-def carregar_dados(caminho: str) -> Optional[pd.DataFrame]:
-    """Carrega arquivo de dados (CSV ou XLSX)."""
-    if not os.path.exists(caminho):
-        logger.error(f"Arquivo não encontrado: {caminho}")
-        return None
+def preparar_dados(
+    df: pd.DataFrame,
+    categoria_alvo: Optional[str] = None,
+    coluna_filtro: str = COL_GRUPO,
+) -> pd.DataFrame:
+    """Prepara dados com colunas temporais, remoção de ruídos e filtro por categoria."""
+    if not validar_colunas(df):
+        return pd.DataFrame()
 
-    extensao = caminho.lower().split('.')[-1]
-
-    if extensao in ['xlsx', 'xls']:
-        try:
-            df = pd.read_excel(caminho, engine='openpyxl', dtype={COL_LOJA: str})
-            logger.info(f"Excel carregado - {len(df)} registros")
-            return df
-        except Exception as e:
-            logger.error(f"Erro ao carregar Excel: {e}")
-            return None
-    else:
-        try:
-            for encoding in ['utf-8', 'latin1', 'cp1252']:
-                try:
-                    df = pd.read_csv(caminho, sep=';', encoding=encoding, dtype={COL_LOJA: str})
-                    logger.info(f"CSV carregado ({encoding}) - {len(df)} registros")
-                    return df
-                except UnicodeDecodeError:
-                    continue
-            return None
-        except Exception as e:
-            logger.error(f"Erro ao carregar CSV: {e}")
-            return None
-
-
-def preparar_dados(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepara dados com colunas temporais."""
     df = df.copy()
-
-    # Limpa valores
     df['valor_limpo'] = df[COL_VALOR].apply(limpar_valor_monetario)
     df = df[df['valor_limpo'] > 0]
 
-    # Processa datas
     df['data_obj'] = pd.to_datetime(df[COL_DATA], dayfirst=True, errors='coerce')
     df = df.dropna(subset=['data_obj'])
 
-    # Cria colunas temporais
     df['dia'] = df['data_obj'].dt.strftime('%Y-%m-%d')
     df['semana'] = df['data_obj'].dt.strftime('%Y-W%W')
     df['mes'] = df['data_obj'].dt.to_period('M').astype(str)
 
-    # Padroniza
     df['produto'] = df[COL_PRODUTO].astype(str).str.strip().str.upper()
     df['loja_id'] = df[COL_LOJA].astype(str)
 
+    # NOVO: Remove ruídos (modificadores de preparo)
+    df = remover_ruidos(df, col_produto='produto')
+
+    # NOVO: Filtra por categoria se especificado
+    if categoria_alvo:
+        df = filtrar_por_categoria(df, categoria_alvo, coluna_filtro)
+
     logger.info(f"Dados preparados: {len(df)} registros válidos")
     return df
-
-
-def configurar_ia() -> Optional[Any]:
-    """Configura modelo Gemini."""
-    if not GEMINI_DISPONIVEL or not API_KEY:
-        logger.warning("API Gemini não disponível")
-        return None
-    try:
-        genai.configure(api_key=API_KEY)
-        modelo = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            generation_config={"temperature": 0.25, "response_mime_type": "application/json"}
-        )
-        logger.info("Gemini configurado")
-        return modelo
-    except Exception as e:
-        logger.error(f"Erro ao configurar Gemini: {e}")
-        return None
 
 
 # ==========================================
@@ -181,59 +107,48 @@ def selecionar_top_bottom(df_periodo: pd.DataFrame, top_n: int = TOP_N, bottom_n
 
 
 def analisar_com_ia(modelo: Any, id_loja: str, periodo: str, itens: list, total: float, granularidade: str) -> list:
-    """Analisa produtos com IA."""
+    """
+    Analisa produtos com IA usando shared.chamar_ia_com_retry().
+    Prompt otimizado: dados sumarizados, zero-shot, sem exemplos redundantes.
+    """
     if not modelo or not itens:
         for item in itens:
             item['analise_ia'] = {"diagnostico": "IA não disponível", "acao": "-"}
         return itens
 
-    # Prepara dados para o prompt
-    dados_texto = "\n".join([
-        f"- {i['produto']}: R$ {i['valor']:.2f} ({i['tipo']})"
-        for i in itens
-    ])
+    # OTIMIZAÇÃO: dados compactos (siglas ao invés de texto completo)
+    dados = json.dumps(
+        [{"p": i['produto'], "v": i['valor'], "t": i['tipo']} for i in itens],
+        ensure_ascii=False
+    )
 
-    prompt = f"""Analise o desempenho de vendas da Loja {id_loja} no período {periodo} ({granularidade}).
+    prompt = (
+        f"Loja {id_loja}, {periodo} ({granularidade}), total R${total:.0f}.\n"
+        f"Dados: {dados}\n"
+        'Retorne JSON: [{"produto":"NOME","diagnostico":"≤80chars","acao":"≤60chars"}]\n'
+        "Regras: diagnóstico direto por produto, foco em ação prática."
+    )
 
-DADOS DE VENDAS:
-{dados_texto}
-
-Total do período: R$ {total:.2f}
-
-Para CADA produto, forneça:
-1. Diagnóstico curto (máx 80 chars)
-2. Ação prática (máx 60 chars)
-
-Retorne JSON array:
-[{{"produto": "NOME", "diagnostico": "...", "acao": "..."}}]"""
-
-    try:
-        time.sleep(DELAY_ENTRE_CHAMADAS)
-        resposta = modelo.generate_content(prompt)
-        resultado = json.loads(resposta.text)
-
-        # Mapeia resultados
+    resultado = chamar_ia_com_retry(modelo, prompt)
+    if resultado:
         dict_analises = {r['produto']: r for r in resultado if isinstance(r, dict)}
-
         for item in itens:
             analise = dict_analises.get(item['produto'], {})
             item['analise_ia'] = {
                 "diagnostico": analise.get('diagnostico', 'Análise indisponível'),
                 "acao": analise.get('acao', '-')
             }
-
-        return itens
-    except Exception as e:
-        logger.warning(f"Erro IA para {periodo}: {e}")
+    else:
         for item in itens:
             item['analise_ia'] = {"diagnostico": "Erro na análise", "acao": "-"}
-        return itens
+
+    return itens
 
 
 def processar_granularidade(df: pd.DataFrame, coluna_periodo: str, granularidade: str, modelo: Any) -> dict:
     """Processa análise para uma granularidade específica."""
     logger.info(f"\n{'='*50}")
-    logger.info(f"📊 Processando análise {granularidade.upper()}")
+    logger.info(f"Processando análise {granularidade.upper()}")
     logger.info(f"{'='*50}")
 
     df_agregado = agregar_por_periodo(df, coluna_periodo)
@@ -245,7 +160,7 @@ def processar_granularidade(df: pd.DataFrame, coluna_periodo: str, granularidade
         df_loja = df_agregado[df_agregado['loja_id'] == id_loja]
         periodos = sorted(df_loja['periodo'].unique())
 
-        logger.info(f"🏢 Loja {id_loja}: {len(periodos)} períodos")
+        logger.info(f"Loja {id_loja}: {len(periodos)} períodos")
 
         analises = {}
         for periodo in periodos:
@@ -261,7 +176,7 @@ def processar_granularidade(df: pd.DataFrame, coluna_periodo: str, granularidade
                 for _, row in selecao.iterrows()
             ]
 
-            # Análise IA (apenas para os últimos 7 períodos para economizar rate limit)
+            # IA apenas nos últimos 7 períodos (economia de rate limit)
             if periodo in periodos[-7:]:
                 itens = analisar_com_ia(modelo, id_loja, periodo, itens, total, granularidade)
             else:
@@ -270,81 +185,105 @@ def processar_granularidade(df: pd.DataFrame, coluna_periodo: str, granularidade
 
             analises[periodo] = {"total": round(total, 2), "itens": itens}
 
-        try:
-            id_loja_final = int(id_loja)
-        except:
-            id_loja_final = id_loja
-
-        resultado["dados_lojas"].append({"id_loja": id_loja_final, "analises": analises})
+        # Usa converter_id_loja() do shared ao invés de try/except inline
+        resultado["dados_lojas"].append({"id_loja": converter_id_loja(id_loja), "analises": analises})
 
     return resultado
 
+
+def salvar_json_local(dados: Any, nome_arquivo: str) -> bool:
+    """Wrapper que salva JSON na PASTA_SAIDA usando shared.salvar_json."""
+    caminho = os.path.join(PASTA_SAIDA, nome_arquivo)
+    return _salvar_json(dados, caminho)
 
 
 # ==========================================
 # FUNÇÃO PRINCIPAL
 # ==========================================
 
-def salvar_json(dados: dict, nome_arquivo: str) -> bool:
-    """Salva dados em JSON na pasta de saída."""
-    os.makedirs(PASTA_SAIDA, exist_ok=True)
-    caminho = os.path.join(PASTA_SAIDA, nome_arquivo)
-    try:
-        with open(caminho, 'w', encoding='utf-8') as f:
-            json.dump(dados, f, ensure_ascii=False, indent=2)
-        logger.info(f"✅ Salvo: {caminho}")
-        return True
-    except Exception as e:
-        logger.error(f"Erro ao salvar {caminho}: {e}")
-        return False
+def parse_args() -> argparse.Namespace:
+    """
+    Parse argumentos de linha de comando.
+
+    Exemplos:
+        py analise_temporal_multi.py dados.csv --mensal
+        py analise_temporal_multi.py dados.csv --categoria CERVEJAS --mensal
+        py analise_temporal_multi.py dados.csv --listar-categorias
+    """
+    parser = argparse.ArgumentParser(description="Análise Temporal Multi-Granularidade")
+    parser.add_argument('arquivo', nargs='?', default='dados_vendas.xlsx',
+                        help='Arquivo de dados (CSV ou XLSX)')
+    parser.add_argument('--diario', action='store_true', help='Gerar análise diária')
+    parser.add_argument('--semanal', action='store_true', help='Gerar análise semanal')
+    parser.add_argument('--mensal', action='store_true', help='Gerar análise mensal')
+    parser.add_argument('--all', action='store_true', help='Gerar todas as granularidades')
+    parser.add_argument('--categoria', type=str, default=None,
+                        help='Filtrar por categoria (ex: CERVEJAS, PICANHA)')
+    parser.add_argument('--coluna-filtro', type=str, default='grupo',
+                        choices=['grupo', 'tipo_produto2'],
+                        help='Coluna de filtro: grupo (grupo_descr) ou tipo_produto2 (macro)')
+    parser.add_argument('--listar-categorias', action='store_true',
+                        help='Lista categorias disponíveis e sai')
+    return parser.parse_args()
 
 
 def main():
     """Executa análise temporal multi-granularidade."""
+    args = parse_args()
+    coluna_filtro = COL_TIPO_PRODUTO2 if args.coluna_filtro == 'tipo_produto2' else COL_GRUPO
     inicio = time.time()
 
-    logger.info("="*60)
-    logger.info("🚀 ANÁLISE TEMPORAL MULTI-GRANULARIDADE")
-    logger.info("="*60)
+    # Se nenhuma granularidade foi selecionada, faz todas
+    fazer_diario = args.diario or args.all or not (args.diario or args.semanal or args.mensal)
+    fazer_semanal = args.semanal or args.all or not (args.diario or args.semanal or args.mensal)
+    fazer_mensal = args.mensal or args.all or not (args.diario or args.semanal or args.mensal)
 
-    # Detecta quais granularidades executar
-    args = sys.argv[1:]
-    fazer_diario = '--diario' in args or '--all' in args or len([a for a in args if a.startswith('--')]) == 0
-    fazer_semanal = '--semanal' in args or '--all' in args or len([a for a in args if a.startswith('--')]) == 0
-    fazer_mensal = '--mensal' in args or '--all' in args or len([a for a in args if a.startswith('--')]) == 0
+    logger.info("=" * 60)
+    logger.info("ANÁLISE TEMPORAL MULTI-GRANULARIDADE")
+    if args.categoria:
+        logger.info(f"Filtro: {args.categoria} ({args.coluna_filtro})")
+    logger.info(f"Granularidades: D={fazer_diario} S={fazer_semanal} M={fazer_mensal}")
+    logger.info("=" * 60)
 
-    logger.info(f"Granularidades: Diário={fazer_diario}, Semanal={fazer_semanal}, Mensal={fazer_mensal}")
-
-    # Carrega dados
-    df = carregar_dados(NOME_ARQUIVO)
+    # Carrega dados (usa shared.carregar_dados)
+    df = carregar_dados(args.arquivo)
     if df is None:
         logger.error("Falha ao carregar dados")
         return 1
 
-    df = preparar_dados(df)
+    # Modo listar categorias
+    if args.listar_categorias:
+        cats = listar_categorias(df, coluna_filtro)
+        print(f"\nCategorias disponíveis ({len(cats)}):")
+        for c in cats:
+            print(f"  - {c}")
+        return 0
+
+    # Prepara dados (inclui remoção de ruídos + filtro por categoria)
+    df = preparar_dados(df, categoria_alvo=args.categoria, coluna_filtro=coluna_filtro)
     if df.empty:
         logger.error("Nenhum dado válido após preparação")
         return 1
 
-    # Configura IA
+    # Configura IA (usa shared.configurar_ia)
     modelo = configurar_ia()
 
     # Processa cada granularidade
     arquivos_gerados = []
 
     if fazer_mensal:
-        resultado_mensal = processar_granularidade(df, 'mes', 'mensal', modelo)
-        if salvar_json(resultado_mensal, 'vendas_mensal.json'):
+        resultado = processar_granularidade(df, 'mes', 'mensal', modelo)
+        if salvar_json_local(resultado, 'vendas_mensal.json'):
             arquivos_gerados.append('vendas_mensal.json')
 
     if fazer_semanal:
-        resultado_semanal = processar_granularidade(df, 'semana', 'semanal', modelo)
-        if salvar_json(resultado_semanal, 'vendas_semanal.json'):
+        resultado = processar_granularidade(df, 'semana', 'semanal', modelo)
+        if salvar_json_local(resultado, 'vendas_semanal.json'):
             arquivos_gerados.append('vendas_semanal.json')
 
     if fazer_diario:
-        resultado_diario = processar_granularidade(df, 'dia', 'diario', modelo)
-        if salvar_json(resultado_diario, 'vendas_diario.json'):
+        resultado = processar_granularidade(df, 'dia', 'diario', modelo)
+        if salvar_json_local(resultado, 'vendas_diario.json'):
             arquivos_gerados.append('vendas_diario.json')
 
     # Gera arquivo consolidado (índice)
@@ -354,22 +293,14 @@ def main():
         "lojas": sorted(df['loja_id'].unique().tolist()),
         "periodo_dados": {
             "inicio": df['data_obj'].min().strftime('%Y-%m-%d'),
-            "fim": df['data_obj'].max().strftime('%Y-%m-%d')
-        }
+            "fim": df['data_obj'].max().strftime('%Y-%m-%d'),
+        },
     }
-    salvar_json(consolidado, 'consolidado.json')
+    salvar_json_local(consolidado, 'consolidado.json')
 
     # Estatísticas finais
     tempo_total = time.time() - inicio
-    logger.info("\n" + "="*60)
-    logger.info("📊 RESUMO DA EXECUÇÃO")
-    logger.info("="*60)
-    logger.info(f"⏱️  Tempo total: {tempo_total:.1f}s")
-    logger.info(f"📁 Arquivos gerados: {len(arquivos_gerados)}")
-    for arq in arquivos_gerados:
-        logger.info(f"   - {PASTA_SAIDA}/{arq}")
-    logger.info("="*60)
-
+    logger.info(f"\nConcluído em {tempo_total:.1f}s | {len(arquivos_gerados)} arquivos gerados")
     return 0
 
 
