@@ -1,12 +1,11 @@
 {
-  "gerado_em": "2026-02-24T02:57:10.036486",
+  "gerado_em": "2026-02-24T09:20:33.385823",
   "arquivos": [
     "vendas_mensal.json",
     "vendas_semanal.json",
     "vendas_diario.json"
   ],
   "lojas": [
-    "1",
     "12",
     "14",
     "15",
@@ -22,6 +21,6 @@
   ],
   "periodo_dados": {
     "inicio": "2022-12-13",
-    "fim": "2025-11-30"
+    "fim": "2026-02-09"
   }
 }
