@@ -1,11 +1,24 @@
 {
-  "gerado_em": "2026-02-24T09:20:33.385823",
+  "gerado_em": "2026-02-24T20:22:03.215041",
   "arquivos": [
     "vendas_mensal.json",
     "vendas_semanal.json",
-    "vendas_diario.json"
+    "vendas_diario.json",
+    "vendas_mensal_bebidas.json",
+    "vendas_semanal_bebidas.json",
+    "vendas_diario_bebidas.json",
+    "vendas_mensal_comidas.json",
+    "vendas_semanal_comidas.json",
+    "vendas_diario_comidas.json",
+    "vendas_mensal_sobremesas.json",
+    "vendas_semanal_sobremesas.json",
+    "vendas_diario_sobremesas.json",
+    "vendas_mensal_outros.json",
+    "vendas_semanal_outros.json",
+    "vendas_diario_outros.json"
   ],
   "lojas": [
+    "1",
     "12",
     "14",
     "15",
@@ -21,6 +34,6 @@
   ],
   "periodo_dados": {
     "inicio": "2022-12-13",
-    "fim": "2026-02-09"
+    "fim": "2025-11-30"
   }
 }
