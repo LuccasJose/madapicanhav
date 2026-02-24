@@ -58,6 +58,18 @@ COL_TIPO_PRODUTO2 = 'FtoResumoVendaGeralItem[Tipo Produto2]'
 COLUNAS_OBRIGATORIAS = [COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA]
 
 # ==========================================
+# CATEGORIAS MACRO (coluna tipo_produto2)
+# Usadas para gerar análises segmentadas por tipo de produto.
+# As 4 macro-categorias cobrem todo o cardápio dos restaurantes.
+# ==========================================
+CATEGORIAS_MACRO = {
+    'BEBIDAS': 'bebidas',
+    'COMIDAS': 'comidas',
+    'SOBREMESAS': 'sobremesas',
+    'OUTROS': 'outros',
+}
+
+# ==========================================
 # PARÂMETROS DE CONFIGURAÇÃO
 # ==========================================
 MAX_TENTATIVAS_API = 5
@@ -218,7 +230,7 @@ def remover_ruidos(df: pd.DataFrame, col_produto: str = COL_PRODUTO) -> pd.DataF
 def filtrar_por_categoria(
     df: pd.DataFrame,
     categoria_alvo: Optional[str] = None,
-    coluna_filtro: str = COL_GRUPO,
+    coluna_filtro: str = COL_TIPO_PRODUTO2,
 ) -> pd.DataFrame:
     """
     Filtra o DataFrame por categoria de produto ANTES de calcular rankings.
@@ -264,7 +276,7 @@ def filtrar_por_categoria(
     return df_filtrado
 
 
-def listar_categorias(df: pd.DataFrame, coluna: str = COL_GRUPO) -> list[str]:
+def listar_categorias(df: pd.DataFrame, coluna: str = COL_TIPO_PRODUTO2) -> list[str]:
     """Retorna lista de categorias únicas disponíveis no dataset."""
     if coluna not in df.columns:
         return []
@@ -459,6 +471,15 @@ def converter_id_loja(id_loja: Any) -> int | str:
         return int(id_loja)
     except (ValueError, TypeError):
         return str(id_loja)
+
+
+def gerar_sufixo_categoria(categoria: str) -> str:
+    """
+    Converte nome da macro-categoria para sufixo de arquivo.
+    Ex: 'BEBIDAS' → 'bebidas', 'COMIDAS' → 'comidas'.
+    Usa o mapeamento CATEGORIAS_MACRO para consistência.
+    """
+    return CATEGORIAS_MACRO.get(categoria.strip().upper(), categoria.strip().lower())
 
 
 def salvar_json(dados: Any, caminho: str) -> bool:

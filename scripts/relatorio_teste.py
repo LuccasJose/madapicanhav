@@ -25,9 +25,11 @@ import pandas as pd
 # Importa módulo compartilhado (centraliza funções reutilizáveis)
 from shared import (
     COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA, COL_GRUPO, COL_TIPO_PRODUTO2,
+    CATEGORIAS_MACRO,
     carregar_dados, limpar_valor_monetario, validar_colunas,
     remover_ruidos, filtrar_por_categoria, listar_categorias,
     configurar_ia, chamar_ia_com_retry, converter_id_loja, salvar_json,
+    gerar_sufixo_categoria,
 )
 
 # Configuração de logging
@@ -148,7 +150,7 @@ def analisar_lote_ia(modelo: Any, id_loja: Any, lote_itens: list[dict]) -> list[
 def preparar_dados(
     df: pd.DataFrame,
     categoria_alvo: Optional[str] = None,
-    coluna_filtro: str = COL_GRUPO,
+    coluna_filtro: str = COL_TIPO_PRODUTO2,
 ) -> Optional[pd.DataFrame]:
     """
     Limpa e prepara dados para análise ABC.
@@ -249,6 +251,19 @@ def gerar_historico_vendas(df: pd.DataFrame) -> pd.DataFrame:
     # Merge histórico com totais
     df_final = pd.merge(df_total, df_historico, on=[COL_LOJA, COL_PRODUTO])
 
+    # Preserva categoria macro (tipo_produto2) para filtragem client-side no dashboard.
+    # Cria mapeamento produto→categoria e adiciona ao DataFrame final.
+    if COL_TIPO_PRODUTO2 in df.columns:
+        cat_map = (
+            df.groupby([COL_LOJA, COL_PRODUTO])[COL_TIPO_PRODUTO2]
+            .first()
+            .reset_index()
+            .rename(columns={COL_TIPO_PRODUTO2: 'categoria'})
+        )
+        cat_map['categoria'] = cat_map['categoria'].astype(str).str.strip().str.upper()
+        df_final = pd.merge(df_final, cat_map, on=[COL_LOJA, COL_PRODUTO], how='left')
+        df_final['categoria'] = df_final['categoria'].fillna('OUTROS')
+
     logger.info(f"Histórico gerado: {len(df_final)} produtos únicos")
     return df_final
 
@@ -272,6 +287,7 @@ def processar_loja(df_loja: pd.DataFrame, id_loja: str, modelo: Any, cache: dict
             "valor_total": round(row['total_vendas'], 2),
             "classe": row['classe'],
             "historico": row['historico_vendas'],
+            "categoria": row.get('categoria', ''),
         },
         axis=1,
     ).tolist()
@@ -347,12 +363,45 @@ def parse_args() -> argparse.Namespace:
                         help='Arquivo de dados (CSV ou XLSX)')
     parser.add_argument('--categoria', type=str, default=None,
                         help='Filtrar por categoria (ex: CERVEJAS, PICANHA, BEBIDAS)')
-    parser.add_argument('--coluna-filtro', type=str, default='grupo',
+    parser.add_argument('--coluna-filtro', type=str, default='tipo_produto2',
                         choices=['grupo', 'tipo_produto2'],
                         help='Coluna de filtro: grupo (grupo_descr) ou tipo_produto2 (macro)')
     parser.add_argument('--listar-categorias', action='store_true',
                         help='Lista todas as categorias disponíveis e sai')
+    parser.add_argument('--gerar-por-categoria', action='store_true',
+                        help='Gera JSONs separados por macro-categoria (BEBIDAS, COMIDAS, etc.)')
     return parser.parse_args()
+
+
+def _executar_analise(
+    df_preparado: pd.DataFrame,
+    modelo: Any,
+    cache: dict,
+    arquivo_saida: str,
+    label: str = "",
+) -> list[dict]:
+    """
+    Executa análise ABC completa para um DataFrame já preparado.
+    Reutilizada tanto para análise consolidada quanto por categoria.
+    """
+    df_processado = gerar_historico_vendas(df_preparado)
+    lista_lojas = df_processado[COL_LOJA].unique()
+    total_lojas = len(lista_lojas)
+    prefixo = f"[{label}] " if label else ""
+    logger.info(f"{prefixo}Processando {total_lojas} lojas...")
+
+    resultado_final = []
+    for idx, id_loja in enumerate(lista_lojas, 1):
+        logger.info(f"{prefixo}Loja {id_loja} ({idx}/{total_lojas})")
+        df_loja = df_processado[df_processado[COL_LOJA] == id_loja]
+        resultado_final.append(processar_loja(df_loja, id_loja, modelo, cache))
+
+    if salvar_json(resultado_final, arquivo_saida):
+        logger.info(f"{prefixo}Concluído: {total_lojas} lojas → {arquivo_saida}")
+    else:
+        logger.error(f"{prefixo}Falha ao salvar {arquivo_saida}")
+
+    return resultado_final
 
 
 def main() -> None:
@@ -364,6 +413,8 @@ def main() -> None:
     logger.info("ANÁLISE CURVA ABC COM IA")
     if args.categoria:
         logger.info(f"Filtro: {args.categoria} ({args.coluna_filtro})")
+    if args.gerar_por_categoria:
+        logger.info("Modo: gerar JSONs por macro-categoria (tipo_produto2)")
     logger.info("=" * 50)
 
     # 1. Carregar dados (usa shared.carregar_dados)
@@ -379,35 +430,51 @@ def main() -> None:
             print(f"  - {c}")
         return
 
+    # 4. Configurar IA (usa shared.configurar_ia)
+    modelo = configurar_ia()
+    cache = carregar_cache()
+
+    # ==========================================
+    # MODO: GERAR POR CATEGORIA
+    # Gera 1 JSON por macro-categoria + 1 consolidado (5 JSONs total)
+    # ==========================================
+    if args.gerar_por_categoria:
+        # 2a. Preparar dados base (sem filtro de categoria, apenas limpeza)
+        df_base = preparar_dados(df, categoria_alvo=None, coluna_filtro=coluna_filtro)
+        if df_base is None:
+            return
+
+        # Gera JSON consolidado (todas as categorias)
+        logger.info("=" * 40)
+        logger.info("Gerando análise CONSOLIDADA (todas as categorias)")
+        _executar_analise(df_base, modelo, cache, ARQUIVO_SAIDA, label="CONSOLIDADO")
+
+        # Gera JSON para cada macro-categoria
+        for cat_nome, cat_sufixo in CATEGORIAS_MACRO.items():
+            logger.info("=" * 40)
+            logger.info(f"Gerando análise para categoria: {cat_nome}")
+            df_cat = filtrar_por_categoria(df_base, cat_nome, COL_TIPO_PRODUTO2)
+            if df_cat.empty:
+                logger.warning(f"Categoria '{cat_nome}' sem dados — pulando")
+                continue
+            arquivo_cat = os.path.join(PASTA_SAIDA, f"analise_abc_{cat_sufixo}.json")
+            _executar_analise(df_cat, modelo, cache, arquivo_cat, label=cat_nome)
+
+        salvar_cache(cache)
+        logger.info("=" * 40)
+        logger.info("Geração multi-categoria concluída!")
+        return
+
+    # ==========================================
+    # MODO: ANÁLISE ÚNICA (padrão ou com --categoria)
+    # ==========================================
     # 2. Preparar dados (inclui remoção de ruídos + filtro por categoria)
     df = preparar_dados(df, categoria_alvo=args.categoria, coluna_filtro=coluna_filtro)
     if df is None:
         return
 
-    # 3. Gerar histórico
-    df_processado = gerar_historico_vendas(df)
-
-    # 4. Configurar IA (usa shared.configurar_ia)
-    modelo = configurar_ia()
-    cache = carregar_cache()
-
-    # 5. Processar lojas
-    lista_lojas = df_processado[COL_LOJA].unique()
-    total_lojas = len(lista_lojas)
-    logger.info(f"Processando {total_lojas} lojas...")
-
-    resultado_final = []
-    for idx, id_loja in enumerate(lista_lojas, 1):
-        logger.info(f"Loja {id_loja} ({idx}/{total_lojas})")
-        df_loja = df_processado[df_processado[COL_LOJA] == id_loja]
-        resultado_final.append(processar_loja(df_loja, id_loja, modelo, cache))
-
-    # 6. Salvar
+    _executar_analise(df, modelo, cache, ARQUIVO_SAIDA)
     salvar_cache(cache)
-    if salvar_json(resultado_final, ARQUIVO_SAIDA):
-        logger.info(f"Concluído: {total_lojas} lojas → {ARQUIVO_SAIDA}")
-    else:
-        logger.error("Falha ao salvar resultado final")
 
 
 if __name__ == "__main__":

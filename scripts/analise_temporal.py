@@ -20,10 +20,12 @@ import pandas as pd
 
 from shared import (
     COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA, COL_GRUPO, COL_TIPO_PRODUTO2,
+    CATEGORIAS_MACRO,
     carregar_dados, limpar_valor_monetario, validar_colunas,
     remover_ruidos, filtrar_por_categoria, listar_categorias,
     configurar_ia, chamar_ia_com_retry,
     obter_contexto_sazonal, extrair_nome_mes, converter_id_loja, salvar_json,
+    gerar_sufixo_categoria,
 )
 
 logging.basicConfig(
@@ -36,6 +38,7 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # CONSTANTES ESPECÍFICAS DESTE SCRIPT
 # ==========================================
+PASTA_SAIDA = "docs/data"
 ARQUIVO_SAIDA = "analise_mensal_sazonal.json"
 TOP_N = 10
 BOTTOM_N = 10
@@ -86,7 +89,7 @@ def analisar_mes_com_ia(modelo: Any, id_loja: Any, mes_ref: str, lista_itens: li
 def preparar_dados(
     df: pd.DataFrame,
     categoria_alvo: Optional[str] = None,
-    coluna_filtro: str = COL_GRUPO,
+    coluna_filtro: str = COL_TIPO_PRODUTO2,
 ) -> Optional[pd.DataFrame]:
     """
     Limpa e prepara dados para análise temporal.
@@ -111,6 +114,12 @@ def preparar_dados(
     df['produto'] = df[COL_PRODUTO].astype(str).str.strip().str.upper().str.replace(r'\s+', ' ', regex=True)
     df['loja_id'] = df[COL_LOJA].astype(str)
 
+    # Preserva categoria macro para filtragem client-side no dashboard
+    if COL_TIPO_PRODUTO2 in df.columns:
+        df['categoria'] = df[COL_TIPO_PRODUTO2].astype(str).str.strip().str.upper()
+    else:
+        df['categoria'] = 'OUTROS'
+
     # NOVO: Remove ruídos (modificadores de preparo como "AO PONTO")
     df = remover_ruidos(df, col_produto='produto')
 
@@ -118,9 +127,12 @@ def preparar_dados(
     if categoria_alvo:
         df = filtrar_por_categoria(df, categoria_alvo, coluna_filtro)
 
-    # Agrupamento mensal
+    # Agrupamento mensal (preserva 'categoria' se existir)
+    group_cols = ['loja_id', 'mes_ano', 'produto']
+    if 'categoria' in df.columns:
+        group_cols.append('categoria')
     df_agrupado = (
-        df.groupby(['loja_id', 'mes_ano', 'produto'])['valor_limpo']
+        df.groupby(group_cols)['valor_limpo']
         .sum()
         .reset_index()
     )
@@ -187,7 +199,8 @@ def processar_mes(
         lambda row: {
             "produto": row['produto'],
             "tipo": row['tipo_ranking'],
-            "venda_este_mes": round(row['valor_limpo'], 2)
+            "venda_este_mes": round(row['valor_limpo'], 2),
+            "categoria": row.get('categoria', ''),
         },
         axis=1
     ).tolist()
@@ -276,12 +289,54 @@ def parse_args() -> argparse.Namespace:
                         help='Processar apenas esta loja (ex: 5)')
     parser.add_argument('--categoria', type=str, default=None,
                         help='Filtrar por categoria (ex: CERVEJAS, PICANHA)')
-    parser.add_argument('--coluna-filtro', type=str, default='grupo',
+    parser.add_argument('--coluna-filtro', type=str, default='tipo_produto2',
                         choices=['grupo', 'tipo_produto2'],
                         help='Coluna de filtro: grupo (grupo_descr) ou tipo_produto2 (macro)')
     parser.add_argument('--listar-categorias', action='store_true',
                         help='Lista categorias disponíveis e sai')
+    parser.add_argument('--gerar-por-categoria', action='store_true',
+                        help='Gera JSONs separados por macro-categoria (BEBIDAS, COMIDAS, etc.)')
     return parser.parse_args()
+
+
+def _executar_analise_temporal(
+    df: pd.DataFrame,
+    modelo: Any,
+    arquivo_saida: str,
+    lojas_filtro: Optional[str] = None,
+    label: str = "",
+) -> None:
+    """
+    Executa análise temporal para um DataFrame já preparado.
+    Reutilizada tanto para análise consolidada quanto por categoria.
+    """
+    prefixo = f"[{label}] " if label else ""
+    lojas = sorted(df['loja_id'].unique())
+    if lojas_filtro:
+        lojas = [l for l in lojas if l == lojas_filtro]
+        if not lojas:
+            logger.error(f"{prefixo}Loja {lojas_filtro} não encontrada.")
+            return
+
+    total_lojas = len(lojas)
+    meses_disponiveis = sorted(df['mes_ano'].unique())
+    logger.info(f"{prefixo}Período: {meses_disponiveis[0]} a {meses_disponiveis[-1]}")
+    logger.info(f"{prefixo}Processando {total_lojas} lojas...")
+
+    resultado = []
+    for idx, id_loja in enumerate(lojas, 1):
+        logger.info(f"{prefixo}Loja {id_loja} ({idx}/{total_lojas})")
+        df_loja = df[df['loja_id'] == id_loja]
+        resultado.append(processar_loja(df_loja, id_loja, modelo))
+
+    if salvar_json(resultado, arquivo_saida):
+        stats = gerar_estatisticas_execucao(resultado)
+        logger.info(
+            f"{prefixo}Concluído: {stats['lojas']} lojas, {stats['meses_analisados']} meses, "
+            f"{stats['itens_processados']} itens → {arquivo_saida}"
+        )
+    else:
+        logger.error(f"{prefixo}Falha ao salvar {arquivo_saida}")
 
 
 def main() -> None:
@@ -294,6 +349,8 @@ def main() -> None:
     logger.info("ANÁLISE TEMPORAL MENSAL - TOP/BOTTOM 10 COM IA")
     if args.categoria:
         logger.info(f"Filtro: {args.categoria} ({args.coluna_filtro})")
+    if args.gerar_por_categoria:
+        logger.info("Modo: gerar JSONs por macro-categoria (tipo_produto2)")
     if args.loja:
         logger.info(f"Loja específica: {args.loja}")
     logger.info("=" * 60)
@@ -311,44 +368,56 @@ def main() -> None:
             print(f"  - {c}")
         return
 
-    # 2. Prepara dados (inclui remoção de ruídos + filtro por categoria)
-    df = preparar_dados(df_raw, categoria_alvo=args.categoria, coluna_filtro=coluna_filtro)
+    # 2. Prepara dados base (remoção de ruídos)
+    df_base = preparar_dados(
+        df_raw,
+        categoria_alvo=args.categoria if not args.gerar_por_categoria else None,
+        coluna_filtro=coluna_filtro,
+    )
     del df_raw
-    if df is None:
+    if df_base is None:
         return
 
     # 3. Configura IA (usa shared.configurar_ia)
     modelo = configurar_ia()
 
-    # 4. Filtra loja se especificado (substitui os scripts analise_loja_N.py)
-    lojas = sorted(df['loja_id'].unique())
-    if args.loja:
-        lojas = [l for l in lojas if l == args.loja]
-        if not lojas:
-            logger.error(f"Loja {args.loja} não encontrada. Lojas: {sorted(df['loja_id'].unique())}")
-            return
-
-    total_lojas = len(lojas)
-    meses_disponiveis = sorted(df['mes_ano'].unique())
-    logger.info(f"Período: {meses_disponiveis[0]} a {meses_disponiveis[-1]}")
-    logger.info(f"Processando {total_lojas} lojas...")
-
-    resultado = []
-    for idx, id_loja in enumerate(lojas, 1):
-        logger.info(f"Loja {id_loja} ({idx}/{total_lojas})")
-        df_loja = df[df['loja_id'] == id_loja]
-        resultado.append(processar_loja(df_loja, id_loja, modelo))
-
-    # 5. Salva resultado (usa shared.salvar_json)
-    if salvar_json(resultado, ARQUIVO_SAIDA):
-        stats = gerar_estatisticas_execucao(resultado)
-        tempo_total = time.time() - inicio
-        logger.info(
-            f"Concluído: {stats['lojas']} lojas, {stats['meses_analisados']} meses, "
-            f"{stats['itens_processados']} itens em {tempo_total:.1f}s → {ARQUIVO_SAIDA}"
+    # ==========================================
+    # MODO: GERAR POR CATEGORIA
+    # ==========================================
+    if args.gerar_por_categoria:
+        import os
+        # Consolidado
+        logger.info("=" * 40)
+        logger.info("Gerando análise temporal CONSOLIDADA")
+        _executar_analise_temporal(
+            df_base, modelo, ARQUIVO_SAIDA,
+            lojas_filtro=args.loja, label="CONSOLIDADO",
         )
-    else:
-        logger.error("Falha ao salvar resultado final")
+
+        # Por categoria
+        for cat_nome, cat_sufixo in CATEGORIAS_MACRO.items():
+            logger.info("=" * 40)
+            logger.info(f"Gerando análise temporal para: {cat_nome}")
+            df_cat = filtrar_por_categoria(df_base, cat_nome, COL_TIPO_PRODUTO2)
+            if df_cat.empty:
+                logger.warning(f"Categoria '{cat_nome}' sem dados — pulando")
+                continue
+            arquivo_cat = os.path.join(PASTA_SAIDA, f"analise_mensal_{cat_sufixo}.json")
+            _executar_analise_temporal(
+                df_cat, modelo, arquivo_cat,
+                lojas_filtro=args.loja, label=cat_nome,
+            )
+
+        tempo_total = time.time() - inicio
+        logger.info(f"\nGeração multi-categoria concluída em {tempo_total:.1f}s")
+        return
+
+    # ==========================================
+    # MODO: ANÁLISE ÚNICA (padrão ou com --categoria)
+    # ==========================================
+    _executar_analise_temporal(df_base, modelo, ARQUIVO_SAIDA, lojas_filtro=args.loja)
+    tempo_total = time.time() - inicio
+    logger.info(f"Tempo total: {tempo_total:.1f}s")
 
 
 if __name__ == "__main__":

@@ -21,10 +21,11 @@ import pandas as pd
 
 from shared import (
     COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA, COL_GRUPO, COL_TIPO_PRODUTO2,
+    CATEGORIAS_MACRO,
     carregar_dados, limpar_valor_monetario, validar_colunas,
     remover_ruidos, filtrar_por_categoria, listar_categorias,
     configurar_ia, chamar_ia_com_retry, converter_id_loja,
-    salvar_json as _salvar_json,
+    salvar_json as _salvar_json, gerar_sufixo_categoria,
 )
 
 logging.basicConfig(
@@ -46,7 +47,7 @@ PAUSA_ENTRE_REQUISICOES = 2.0
 def preparar_dados(
     df: pd.DataFrame,
     categoria_alvo: Optional[str] = None,
-    coluna_filtro: str = COL_GRUPO,
+    coluna_filtro: str = COL_TIPO_PRODUTO2,
 ) -> pd.DataFrame:
     """Prepara dados com colunas temporais, remoção de ruídos e filtro por categoria."""
     if not validar_colunas(df):
@@ -66,6 +67,12 @@ def preparar_dados(
     df['produto'] = df[COL_PRODUTO].astype(str).str.strip().str.upper()
     df['loja_id'] = df[COL_LOJA].astype(str)
 
+    # Preserva categoria macro para filtragem client-side no dashboard
+    if COL_TIPO_PRODUTO2 in df.columns:
+        df['categoria'] = df[COL_TIPO_PRODUTO2].astype(str).str.strip().str.upper()
+    else:
+        df['categoria'] = 'OUTROS'
+
     # NOVO: Remove ruídos (modificadores de preparo)
     df = remover_ruidos(df, col_produto='produto')
 
@@ -82,9 +89,12 @@ def preparar_dados(
 # ==========================================
 
 def agregar_por_periodo(df: pd.DataFrame, coluna_periodo: str) -> pd.DataFrame:
-    """Agrega dados por período (dia, semana ou mês)."""
+    """Agrega dados por período (dia, semana ou mês). Preserva coluna 'categoria' se existir."""
+    group_cols = ['loja_id', coluna_periodo, 'produto']
+    if 'categoria' in df.columns:
+        group_cols.append('categoria')
     return (
-        df.groupby(['loja_id', coluna_periodo, 'produto'])['valor_limpo']
+        df.groupby(group_cols)['valor_limpo']
         .sum()
         .reset_index()
         .rename(columns={coluna_periodo: 'periodo'})
@@ -172,7 +182,12 @@ def processar_granularidade(df: pd.DataFrame, coluna_periodo: str, granularidade
                 continue
 
             itens = [
-                {"produto": row['produto'], "valor": round(row['valor_limpo'], 2), "tipo": row['tipo']}
+                {
+                    "produto": row['produto'],
+                    "valor": round(row['valor_limpo'], 2),
+                    "tipo": row['tipo'],
+                    "categoria": row.get('categoria', ''),
+                }
                 for _, row in selecao.iterrows()
             ]
 
@@ -219,12 +234,50 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--all', action='store_true', help='Gerar todas as granularidades')
     parser.add_argument('--categoria', type=str, default=None,
                         help='Filtrar por categoria (ex: CERVEJAS, PICANHA)')
-    parser.add_argument('--coluna-filtro', type=str, default='grupo',
+    parser.add_argument('--coluna-filtro', type=str, default='tipo_produto2',
                         choices=['grupo', 'tipo_produto2'],
                         help='Coluna de filtro: grupo (grupo_descr) ou tipo_produto2 (macro)')
     parser.add_argument('--listar-categorias', action='store_true',
                         help='Lista categorias disponíveis e sai')
+    parser.add_argument('--gerar-por-categoria', action='store_true',
+                        help='Gera JSONs separados por macro-categoria (BEBIDAS, COMIDAS, etc.)')
     return parser.parse_args()
+
+
+def _processar_granularidades(
+    df: pd.DataFrame,
+    modelo: Any,
+    fazer_diario: bool,
+    fazer_semanal: bool,
+    fazer_mensal: bool,
+    sufixo: str = "",
+) -> list[str]:
+    """
+    Processa as granularidades selecionadas e retorna lista de arquivos gerados.
+    O sufixo é adicionado ao nome do arquivo (ex: '_bebidas').
+    """
+    arquivos_gerados = []
+    suf = f"_{sufixo}" if sufixo else ""
+
+    if fazer_mensal:
+        resultado = processar_granularidade(df, 'mes', 'mensal', modelo)
+        nome = f'vendas_mensal{suf}.json'
+        if salvar_json_local(resultado, nome):
+            arquivos_gerados.append(nome)
+
+    if fazer_semanal:
+        resultado = processar_granularidade(df, 'semana', 'semanal', modelo)
+        nome = f'vendas_semanal{suf}.json'
+        if salvar_json_local(resultado, nome):
+            arquivos_gerados.append(nome)
+
+    if fazer_diario:
+        resultado = processar_granularidade(df, 'dia', 'diario', modelo)
+        nome = f'vendas_diario{suf}.json'
+        if salvar_json_local(resultado, nome):
+            arquivos_gerados.append(nome)
+
+    return arquivos_gerados
 
 
 def main():
@@ -242,6 +295,8 @@ def main():
     logger.info("ANÁLISE TEMPORAL MULTI-GRANULARIDADE")
     if args.categoria:
         logger.info(f"Filtro: {args.categoria} ({args.coluna_filtro})")
+    if args.gerar_por_categoria:
+        logger.info("Modo: gerar JSONs por macro-categoria (tipo_produto2)")
     logger.info(f"Granularidades: D={fazer_diario} S={fazer_semanal} M={fazer_mensal}")
     logger.info("=" * 60)
 
@@ -259,41 +314,60 @@ def main():
             print(f"  - {c}")
         return 0
 
-    # Prepara dados (inclui remoção de ruídos + filtro por categoria)
-    df = preparar_dados(df, categoria_alvo=args.categoria, coluna_filtro=coluna_filtro)
-    if df.empty:
+    # Prepara dados base (remoção de ruídos, sem filtro de categoria ainda)
+    df_base = preparar_dados(
+        df,
+        categoria_alvo=args.categoria if not args.gerar_por_categoria else None,
+        coluna_filtro=coluna_filtro,
+    )
+    if df_base.empty:
         logger.error("Nenhum dado válido após preparação")
         return 1
 
     # Configura IA (usa shared.configurar_ia)
     modelo = configurar_ia()
-
-    # Processa cada granularidade
     arquivos_gerados = []
 
-    if fazer_mensal:
-        resultado = processar_granularidade(df, 'mes', 'mensal', modelo)
-        if salvar_json_local(resultado, 'vendas_mensal.json'):
-            arquivos_gerados.append('vendas_mensal.json')
+    # ==========================================
+    # MODO: GERAR POR CATEGORIA
+    # Gera JSONs para cada granularidade × cada macro-categoria + consolidado
+    # ==========================================
+    if args.gerar_por_categoria:
+        # Consolidado (todas as categorias)
+        logger.info("=" * 40)
+        logger.info("Gerando análise CONSOLIDADA (todas as categorias)")
+        arquivos_gerados += _processar_granularidades(
+            df_base, modelo, fazer_diario, fazer_semanal, fazer_mensal,
+        )
 
-    if fazer_semanal:
-        resultado = processar_granularidade(df, 'semana', 'semanal', modelo)
-        if salvar_json_local(resultado, 'vendas_semanal.json'):
-            arquivos_gerados.append('vendas_semanal.json')
-
-    if fazer_diario:
-        resultado = processar_granularidade(df, 'dia', 'diario', modelo)
-        if salvar_json_local(resultado, 'vendas_diario.json'):
-            arquivos_gerados.append('vendas_diario.json')
+        # Por categoria
+        for cat_nome, cat_sufixo in CATEGORIAS_MACRO.items():
+            logger.info("=" * 40)
+            logger.info(f"Gerando análise temporal para categoria: {cat_nome}")
+            df_cat = filtrar_por_categoria(df_base, cat_nome, COL_TIPO_PRODUTO2)
+            if df_cat.empty:
+                logger.warning(f"Categoria '{cat_nome}' sem dados — pulando")
+                continue
+            arquivos_gerados += _processar_granularidades(
+                df_cat, modelo, fazer_diario, fazer_semanal, fazer_mensal,
+                sufixo=cat_sufixo,
+            )
+    else:
+        # ==========================================
+        # MODO: ANÁLISE ÚNICA (padrão ou com --categoria)
+        # ==========================================
+        arquivos_gerados = _processar_granularidades(
+            df_base, modelo, fazer_diario, fazer_semanal, fazer_mensal,
+        )
 
     # Gera arquivo consolidado (índice)
     consolidado = {
         "gerado_em": datetime.now().isoformat(),
         "arquivos": arquivos_gerados,
-        "lojas": sorted(df['loja_id'].unique().tolist()),
+        "lojas": sorted(df_base['loja_id'].unique().tolist()),
         "periodo_dados": {
-            "inicio": df['data_obj'].min().strftime('%Y-%m-%d'),
-            "fim": df['data_obj'].max().strftime('%Y-%m-%d'),
+            "inicio": df_base['data_obj'].min().strftime('%Y-%m-%d'),
+            "fim": df_base['data_obj'].max().strftime('%Y-%m-%d'),
         },
     }
     salvar_json_local(consolidado, 'consolidado.json')

@@ -57,22 +57,22 @@ jobs:
           echo "✅ Arquivo '$ARQUIVO' encontrado"
           echo "📊 Tamanho: $(ls -lh "$ARQUIVO" | awk '{print $5}')"
 
-      # 5. Executar análise ABC (Curva ABC)
+      # 5. Executar análise ABC (Curva ABC) — gera JSONs por categoria + consolidado
       - name: 📈 Executar Análise ABC (relatorio_teste.py)
         continue-on-error: true
         run: |
-          echo "🚀 Iniciando análise ABC..."
+          echo "🚀 Iniciando análise ABC (multi-categoria)..."
           ARQUIVO="${{ env.ARQUIVO_DADOS }}"
-          python scripts/relatorio_teste.py "$ARQUIVO"
-          echo "✅ Análise ABC concluída"
+          python scripts/relatorio_teste.py "$ARQUIVO" --gerar-por-categoria
+          echo "✅ Análise ABC concluída (5 JSONs: consolidado + 4 categorias)"
 
-      # 6. Executar análise temporal multi-granularidade (diário, semanal, mensal)
+      # 6. Executar análise temporal multi-granularidade — gera JSONs por categoria + consolidado
       - name: 📅 Executar Análise Temporal Multi-Granularidade
         continue-on-error: true
         run: |
-          echo "🚀 Iniciando análise temporal (diário, semanal, mensal)..."
+          echo "🚀 Iniciando análise temporal multi-categoria (diário, semanal, mensal)..."
           ARQUIVO="${{ env.ARQUIVO_DADOS }}"
-          python scripts/analise_temporal_multi.py "$ARQUIVO" --all
+          python scripts/analise_temporal_multi.py "$ARQUIVO" --all --gerar-por-categoria
           echo "✅ Análise temporal multi-granularidade concluída"
 
       # 7. Verificar JSONs gerados

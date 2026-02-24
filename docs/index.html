@@ -54,6 +54,21 @@
         .granularity-btn { padding: 8px 14px; border: 1px solid #e2e8f0; background: white; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 500; color: #64748b; transition: 0.2s; }
         .granularity-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
+        /* Filtro de Categorias */
+        .category-filter { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .cat-btn { padding: 6px 14px; border: 2px solid #e2e8f0; background: white; border-radius: 20px; cursor: pointer; font-size: 0.85em; font-weight: 600; color: #64748b; transition: 0.2s; }
+        .cat-btn:hover { border-color: var(--secondary); color: var(--secondary); }
+        .cat-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
+        .cat-btn.cat-bebidas.active { background: #3b82f6; border-color: #3b82f6; }
+        .cat-btn.cat-comidas.active { background: #ef4444; border-color: #ef4444; }
+        .cat-btn.cat-sobremesas.active { background: #f59e0b; border-color: #f59e0b; }
+        .cat-btn.cat-outros.active { background: #8b5cf6; border-color: #8b5cf6; }
+        .cat-badge { display: inline-block; font-size: 0.7em; padding: 2px 8px; border-radius: 12px; font-weight: 600; margin-left: 4px; }
+        .cat-badge-bebidas { background: #dbeafe; color: #1d4ed8; }
+        .cat-badge-comidas { background: #fee2e2; color: #dc2626; }
+        .cat-badge-sobremesas { background: #fef3c7; color: #d97706; }
+        .cat-badge-outros { background: #ede9fe; color: #7c3aed; }
+
         /* Loading */
         .loading { text-align: center; padding: 40px; }
         .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--secondary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
@@ -88,6 +103,21 @@
             </div>
         </div>
 
+        <!-- Filtro de Categorias de Produto -->
+        <div class="controls" style="padding: 12px 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-weight: 600; color: var(--primary); font-size: 0.9em;">🏷️ Categorias:</span>
+                <div class="category-filter" id="categoryFilter">
+                    <button onclick="toggleCategory('todas')" id="catTodas" class="cat-btn active">Todas</button>
+                    <button onclick="toggleCategory('bebidas')" id="catBebidas" class="cat-btn cat-bebidas">🍺 Bebidas</button>
+                    <button onclick="toggleCategory('comidas')" id="catComidas" class="cat-btn cat-comidas">🥩 Comidas</button>
+                    <button onclick="toggleCategory('sobremesas')" id="catSobremesas" class="cat-btn cat-sobremesas">🍰 Sobremesas</button>
+                    <button onclick="toggleCategory('outros')" id="catOutros" class="cat-btn cat-outros">📦 Outros</button>
+                </div>
+            </div>
+            <div id="activeCategoryBadges" style="display: flex; gap: 4px; flex-wrap: wrap;"></div>
+        </div>
+
         <div class="store-selector" id="storeList"></div>
 
         <div class="grid-2">
@@ -97,13 +127,13 @@
                 <div id="totalItens" style="margin-top: 10px; font-weight: 500; color: var(--primary); margin-bottom: 20px;">0 produtos</div>
 
                 <div style="width: 100%; border-top: 1px solid #f1f5f9; padding-top: 15px;">
-                    <div style="font-size: 0.9em; font-weight: 600; color: #64748b; margin-bottom: 10px;">Mix de Produtos (Curva ABC)</div>
+                    <div style="font-size: 0.9em; font-weight: 600; color: #64748b; margin-bottom: 10px;" id="abcChartTitle">Mix de Produtos (Curva ABC)</div>
                     <div style="height: 180px;"><canvas id="chartABC"></canvas></div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header">📈 Histórico de Vendas</div>
+                <div class="card-header" id="historyChartTitle">📈 Histórico de Vendas</div>
                 <div style="height: 250px; width: 100%;"><canvas id="chartHistory"></canvas></div>
             </div>
         </div>
@@ -158,6 +188,11 @@
     let chartInstance = null;
     let chartABCInstance = null;
 
+    // Estado de categorias selecionadas
+    let CATEGORIAS_ATIVAS = new Set(['todas']);
+    const CATEGORIAS_DISPONIVEIS = ['bebidas', 'comidas', 'sobremesas', 'outros'];
+    const CAT_LABELS = { bebidas: '🍺 Bebidas', comidas: '🥩 Comidas', sobremesas: '🍰 Sobremesas', outros: '📦 Outros' };
+
     const NOMES_LOJAS = {
         "1": "CD VACA BRAVA", "12": "MP SHOPPING CERRADO", "14": "MP SHOPPING RIO VERDE", "15": "MADALENA GASTROBAR",
         "2": "MP PASSEIO DAS AGUAS", "20": "MALIBU SUSHI BAR", "3": "MP ALPHAMALL", "4": "PETRA BAR",
@@ -168,16 +203,43 @@
     // FUNÇÕES DE CARREGAMENTO DE DADOS (FETCH)
     // =======================================================
 
-    async function loadData(granularidade) {
-        const arquivo = `vendas_${granularidade}.json`;
+    async function loadData(granularidade, sufixoCategoria = '') {
+        const suf = sufixoCategoria ? `_${sufixoCategoria}` : '';
+        const arquivo = `vendas_${granularidade}${suf}.json`;
         try {
             const response = await fetch(DATA_PATH + arquivo);
             if (!response.ok) throw new Error(`Arquivo não encontrado: ${arquivo}`);
             return await response.json();
         } catch (error) {
-            console.error(`Erro ao carregar ${arquivo}:`, error);
+            console.warn(`Arquivo ${arquivo} não disponível:`, error.message);
             return null;
         }
+    }
+
+    /**
+     * Mescla dados de múltiplos JSONs de categoria em um único array de lojas.
+     * Cada loja recebe as análises combinadas de todas as categorias selecionadas.
+     */
+    function mergeLojaData(datasetsArray) {
+        const lojaMap = {};
+        for (const dados of datasetsArray) {
+            if (!dados || !dados.dados_lojas) continue;
+            for (const loja of dados.dados_lojas) {
+                const id = String(loja.id_loja);
+                if (!lojaMap[id]) {
+                    lojaMap[id] = { id_loja: loja.id_loja, analises: {} };
+                }
+                // Merge análises (períodos) - soma totais e concatena itens
+                for (const [periodo, dadosPeriodo] of Object.entries(loja.analises || {})) {
+                    if (!lojaMap[id].analises[periodo]) {
+                        lojaMap[id].analises[periodo] = { total: 0, itens: [] };
+                    }
+                    lojaMap[id].analises[periodo].total += (dadosPeriodo.total || 0);
+                    lojaMap[id].analises[periodo].itens.push(...(dadosPeriodo.itens || []));
+                }
+            }
+        }
+        return Object.values(lojaMap);
     }
 
     async function setGranularity(tipo) {
@@ -187,21 +249,111 @@
         document.querySelectorAll('.granularity-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('btn' + tipo.charAt(0).toUpperCase() + tipo.slice(1)).classList.add('active');
 
+        await reloadDataForCategories();
+    }
+
+    /**
+     * Carrega os JSONs baseado nas categorias ativas e granularidade atual.
+     * - "todas" → carrega o JSON consolidado (sem sufixo)
+     * - Categorias específicas → carrega JSONs por categoria e faz merge
+     */
+    async function reloadDataForCategories() {
         // Mostra loading
         document.getElementById('loading-screen').style.display = 'block';
         document.getElementById('dashboard-panel').style.display = 'none';
 
-        // Carrega dados
-        const dados = await loadData(tipo);
+        let dados = null;
 
-        if (dados && dados.dados_lojas) {
-            JSON_VENDAS = dados.dados_lojas;
+        if (CATEGORIAS_ATIVAS.has('todas')) {
+            // Carrega JSON consolidado
+            dados = await loadData(GRANULARIDADE);
+            if (dados && dados.dados_lojas) {
+                JSON_VENDAS = dados.dados_lojas;
+            }
+        } else {
+            // Carrega JSONs por categoria e faz merge
+            const promises = [...CATEGORIAS_ATIVAS].map(cat => loadData(GRANULARIDADE, cat));
+            const resultados = await Promise.all(promises);
+            const validos = resultados.filter(r => r !== null);
+
+            if (validos.length > 0) {
+                JSON_VENDAS = mergeLojaData(validos);
+                dados = { dados_lojas: JSON_VENDAS };
+            } else {
+                // Fallback: tenta carregar o consolidado
+                dados = await loadData(GRANULARIDADE);
+                if (dados && dados.dados_lojas) {
+                    JSON_VENDAS = dados.dados_lojas;
+                }
+            }
+        }
+
+        if (JSON_VENDAS && JSON_VENDAS.length > 0) {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('dashboard-panel').style.display = 'block';
+            updateCategoryBadges();
+            updateChartTitles();
             initDashboard();
         } else {
-            showError(`Não foi possível carregar os dados ${tipo}. Verifique se o arquivo existe.`);
+            showError(`Não foi possível carregar os dados. Verifique se os arquivos JSON existem.`);
         }
+    }
+
+    /**
+     * Alterna categoria selecionada (suporta multi-select com Ctrl/Cmd+Click).
+     */
+    function toggleCategory(cat) {
+        const evento = window.event || {};
+        const isMultiSelect = evento.ctrlKey || evento.metaKey;
+
+        if (cat === 'todas') {
+            // Seleciona apenas "Todas"
+            CATEGORIAS_ATIVAS = new Set(['todas']);
+        } else if (isMultiSelect) {
+            // Multi-select: toggle individual
+            CATEGORIAS_ATIVAS.delete('todas');
+            if (CATEGORIAS_ATIVAS.has(cat)) {
+                CATEGORIAS_ATIVAS.delete(cat);
+                if (CATEGORIAS_ATIVAS.size === 0) CATEGORIAS_ATIVAS.add('todas');
+            } else {
+                CATEGORIAS_ATIVAS.add(cat);
+            }
+        } else {
+            // Click simples: seleciona apenas esta categoria
+            CATEGORIAS_ATIVAS = new Set([cat]);
+        }
+
+        // Atualiza visual dos botões
+        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+        for (const c of CATEGORIAS_ATIVAS) {
+            const btnId = 'cat' + c.charAt(0).toUpperCase() + c.slice(1);
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.add('active');
+        }
+
+        reloadDataForCategories();
+    }
+
+    function updateCategoryBadges() {
+        const container = document.getElementById('activeCategoryBadges');
+        if (CATEGORIAS_ATIVAS.has('todas')) {
+            container.innerHTML = '<span class="cat-badge" style="background:#e2e8f0;color:#475569;">Todas as categorias</span>';
+            return;
+        }
+        container.innerHTML = [...CATEGORIAS_ATIVAS].map(c =>
+            `<span class="cat-badge cat-badge-${c}">${CAT_LABELS[c] || c}</span>`
+        ).join('');
+    }
+
+    function updateChartTitles() {
+        let catLabel = 'Todas as Categorias';
+        if (!CATEGORIAS_ATIVAS.has('todas')) {
+            catLabel = [...CATEGORIAS_ATIVAS].map(c => CAT_LABELS[c] || c).join(', ');
+        }
+        const abcTitle = document.getElementById('abcChartTitle');
+        const histTitle = document.getElementById('historyChartTitle');
+        if (abcTitle) abcTitle.textContent = `Mix de Produtos (Curva ABC) — ${catLabel}`;
+        if (histTitle) histTitle.textContent = `📈 Histórico de Vendas — ${catLabel}`;
     }
 
     function showError(msg) {
@@ -216,6 +368,7 @@
     // =======================================================
 
     document.addEventListener('DOMContentLoaded', function() {
+        updateCategoryBadges();
         setGranularity('mensal');
     });
 
@@ -336,7 +489,7 @@
             const nome = item.produto;
             const valor = item.valor || 0;
             if (!produtosMap[nome]) {
-                produtosMap[nome] = { valor: 0, insights: [], tipo: item.tipo };
+                produtosMap[nome] = { valor: 0, insights: [], tipo: item.tipo, categoria: item.categoria || '' };
             }
             produtosMap[nome].valor += valor;
             if (item.analise_ia && item.analise_ia.diagnostico && item.analise_ia.diagnostico !== 'IA não disponível') {
@@ -345,7 +498,7 @@
         });
 
         let todosProdutos = Object.entries(produtosMap)
-            .map(([nome, dados]) => ({ nome, valor: dados.valor, insights: dados.insights, tipo: dados.tipo }))
+            .map(([nome, dados]) => ({ nome, valor: dados.valor, insights: dados.insights, tipo: dados.tipo, categoria: dados.categoria }))
             .sort((a, b) => b.valor - a.valor);
 
         // Calcula ABC
@@ -367,11 +520,24 @@
         document.getElementById('totalFat').innerText = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         document.getElementById('totalItens').innerText = `${todosProdutos.length} produtos analisados`;
 
-        // Salva estados
+        // Salva estados (todos os produtos, sem filtro de categoria)
         window.currentProducts = todosProdutos;
-        window.originalBestRanking = todosProdutos.filter(p => p.tipo === 'TOP').slice(0, 10);
-        window.originalWorstRanking = todosProdutos.filter(p => p.tipo === 'BOTTOM').slice(0, 10);
         window.isFilteredByABC = false;
+
+        // Filtra por categoria ativa para rankings e insights.
+        // Se "todas" estiver ativa, usa todos os produtos.
+        // Se itens não possuem campo 'categoria' (JSONs antigos), pula o filtro.
+        let produtosFiltrados = todosProdutos;
+        if (!CATEGORIAS_ATIVAS.has('todas')) {
+            const temCategoria = todosProdutos.some(p => p.categoria);
+            if (temCategoria) {
+                const catFiltro = new Set([...CATEGORIAS_ATIVAS].map(c => c.toUpperCase()));
+                produtosFiltrados = todosProdutos.filter(p => catFiltro.has((p.categoria || '').toUpperCase()));
+            }
+        }
+
+        window.originalBestRanking = produtosFiltrados.filter(p => p.tipo === 'TOP').slice(0, 10);
+        window.originalWorstRanking = produtosFiltrados.filter(p => p.tipo === 'BOTTOM').slice(0, 10);
 
         // Renderiza
         renderChartHistory(loja.analises);
@@ -379,7 +545,7 @@
         renderList('listBest', window.originalBestRanking, 'success');
         renderList('listWorst', window.originalWorstRanking, 'danger');
         updateRestoreButtons();
-        renderAllInsights(todosProdutos);
+        renderAllInsights(produtosFiltrados);
     }
 
 
