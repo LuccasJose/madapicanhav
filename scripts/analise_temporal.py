@@ -101,12 +101,15 @@ def preparar_dados(
 
     df = df.copy()
 
+    # Filtrar loja 1 (CD VACA BRAVA)
+    df = df[df[COL_LOJA].astype(str) != '1'].copy()
+
     # Limpa valores monetários
     df['valor_limpo'] = df[COL_VALOR].apply(limpar_valor_monetario)
     df = df[df['valor_limpo'] > 0]
 
     # Datas
-    df['data_obj'] = pd.to_datetime(df[COL_DATA], dayfirst=True, errors='coerce')
+    df['data_obj'] = pd.to_datetime(df[COL_DATA], format='%Y-%m-%d', errors='coerce')
     df['mes_ano'] = df['data_obj'].dt.to_period('M').astype(str)
     df = df.dropna(subset=['mes_ano'])
 

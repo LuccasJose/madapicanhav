@@ -171,6 +171,9 @@ def preparar_dados(
 
     df = df.copy()
 
+    # Filtrar loja 1 (CD VACA BRAVA)
+    df = df[df[COL_LOJA].astype(str) != '1'].copy()
+
     # Converte valores monetários
     df['valor_limpo'] = df[COL_VALOR].apply(limpar_valor_monetario)
 
@@ -182,7 +185,7 @@ def preparar_dados(
         logger.info(f"Removidos {removidos} registros com valor <= 0")
 
     # Tratamento de data
-    df['data_obj'] = pd.to_datetime(df[COL_DATA], dayfirst=True, errors='coerce')
+    df['data_obj'] = pd.to_datetime(df[COL_DATA], format='%Y-%m-%d', errors='coerce')
     datas_invalidas = df['data_obj'].isna().sum()
     if datas_invalidas > 0:
         logger.warning(f"{datas_invalidas} datas inválidas encontradas")

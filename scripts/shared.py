@@ -46,14 +46,14 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # CONSTANTES DE COLUNAS DO DATASET
 # ==========================================
-COL_LOJA = 'FtoResumoVendaGeralItem[loja_id]'
-COL_PRODUTO = 'FtoResumoVendaGeralItem[material_descr]'
-COL_VALOR = 'FtoResumoVendaGeralItem[vl_total]'
-COL_DATA = 'FtoResumoVendaGeralItem[dt_contabil]'
-COL_QTD = 'FtoResumoVendaGeralItem[qtd]'
-COL_GRUPO = 'FtoResumoVendaGeralItem[grupo_descr]'
-COL_TIPO_PRODUTO = 'FtoResumoVendaGeralItem[Tipo Produto]'
-COL_TIPO_PRODUTO2 = 'FtoResumoVendaGeralItem[Tipo Produto2]'
+COL_LOJA = 'loja_id'
+COL_PRODUTO = 'material_descr'
+COL_VALOR = 'vl_total'
+COL_DATA = 'dt_contabil'
+COL_QTD = 'qtd'
+COL_GRUPO = 'grupo_descr'
+COL_TIPO_PRODUTO = 'Tipo Produto'
+COL_TIPO_PRODUTO2 = 'Tipo Produto2'
 
 COLUNAS_OBRIGATORIAS = [COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA]
 
@@ -156,20 +156,20 @@ def carregar_dados(caminho: str) -> Optional[pd.DataFrame]:
             logger.error(f"Erro ao carregar Excel: {e}")
             return None
 
-    # CSV — tenta múltiplos encodings
+    # CSV — tenta múltiplos encodings e separadores
     for encoding in ('latin1', 'utf-8', 'cp1252', 'iso-8859-1'):
-        try:
-            df = pd.read_csv(
-                caminho, sep=';', encoding=encoding,
-                on_bad_lines='skip', dtype={COL_LOJA: str}
-            )
-            logger.info(f"CSV carregado ({encoding}): {len(df)} registros")
-            return df
-        except UnicodeDecodeError:
-            continue
-        except Exception as e:
-            logger.error(f"Erro ao carregar CSV ({encoding}): {e}")
-            continue
+        for sep in (',', ';'):
+            try:
+                df = pd.read_csv(
+                    caminho, sep=sep, encoding=encoding,
+                    on_bad_lines='skip', dtype={COL_LOJA: str}
+                )
+                logger.info(f"CSV carregado ({encoding}, sep='{sep}'): {len(df)} registros")
+                return df
+            except UnicodeDecodeError:
+                continue
+            except Exception as e:
+                continue
 
     logger.error("Não foi possível carregar o arquivo com nenhum encoding")
     return None

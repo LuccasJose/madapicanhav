@@ -74,10 +74,14 @@ def preparar_dados(
         return pd.DataFrame()
 
     df = df.copy()
+
+    # Filtrar loja 1 (CD VACA BRAVA)
+    df = df[df[COL_LOJA].astype(str) != '1'].copy()
+
     df['valor_limpo'] = df[COL_VALOR].apply(limpar_valor_monetario)
     df = df[df['valor_limpo'] > 0]
 
-    df['data_obj'] = pd.to_datetime(df[COL_DATA], dayfirst=True, errors='coerce')
+    df['data_obj'] = pd.to_datetime(df[COL_DATA], format='%Y-%m-%d', errors='coerce')
     df = df.dropna(subset=['data_obj'])
 
     df['dia'] = df['data_obj'].dt.strftime('%Y-%m-%d')
@@ -122,28 +126,18 @@ def agregar_por_periodo(df: pd.DataFrame, coluna_periodo: str) -> pd.DataFrame:
 
 
 def selecionar_top_bottom(df_periodo: pd.DataFrame, top_n: int = TOP_N, bottom_n: int = BOTTOM_N) -> pd.DataFrame:
-    """Seleciona TOP e BOTTOM produtos de um período.
+    """Retorna TODOS os produtos vendidos em um período, sem duplicatas.
 
-    Quando há menos de 10 produtos no ranking inferior, rotula como 'MENOS VENDIDOS'
-    ao invés de 'BOTTOM 10' para maior coerência.
+    Cada produto aparece uma única vez com seu valor total no período.
+    Ordena por valor decrescente para facilitar visualização.
     """
-    df_sorted = df_periodo.sort_values('valor_limpo', ascending=False)
+    # Retorna todos os produtos, ordenados por valor (maior para menor)
+    df_sorted = df_periodo.sort_values('valor_limpo', ascending=False).copy()
 
-    # TOP N
-    top = df_sorted.head(top_n).copy()
-    top['tipo'] = 'TOP'
+    # Marca todos como 'VENDIDO' (sem distinção TOP/BOTTOM)
+    df_sorted['tipo'] = 'VENDIDO'
 
-    # BOTTOM N (com vendas > 0)
-    bottom_com_vendas = df_sorted[df_sorted['valor_limpo'] > 0]
-    bottom = bottom_com_vendas.tail(bottom_n).copy()
-
-    # Se há menos de 10 produtos, rotula como 'MENOS VENDIDOS'
-    if len(bottom) < bottom_n:
-        bottom['tipo'] = 'MENOS VENDIDOS'
-    else:
-        bottom['tipo'] = 'BOTTOM'
-
-    return pd.concat([top, bottom], ignore_index=True)
+    return df_sorted
 
 
 def analisar_com_ia(modelo: Any, id_loja: str, periodo: str, itens: list, total: float, granularidade: str) -> list:
@@ -339,9 +333,15 @@ def main(csv_path, all_flag=False, gerar_por_categoria=False):
         modelo = configurar_ia()
 
     # Processar granularidades
-    fazer_diario = all_flag
-    fazer_semanal = all_flag
-    fazer_mensal = all_flag or True  # sempre mensal por padrão
+    # Se nenhuma flag foi especificada, processa todas por padrão
+    if not (args.diario or args.semanal or args.mensal or all_flag):
+        fazer_diario = True
+        fazer_semanal = True
+        fazer_mensal = True
+    else:
+        fazer_diario = args.diario or all_flag
+        fazer_semanal = args.semanal or all_flag
+        fazer_mensal = args.mensal or all_flag
 
     arquivos_gerados = []
 
@@ -354,7 +354,7 @@ def main(csv_path, all_flag=False, gerar_por_categoria=False):
         logger.info("Gerando análise CONSOLIDADA (todas as categorias)")
         with TimingContext("Processamento consolidado"):
             arquivos_gerados.extend(_processar_granularidades(
-                df_base, modelo, fazer_mensal, fazer_semanal, fazer_diario, sufixo=""
+                df_base, modelo, fazer_diario, fazer_semanal, fazer_mensal, sufixo=""
             ))
 
         # Gera JSON para cada macro-categoria
@@ -368,7 +368,7 @@ def main(csv_path, all_flag=False, gerar_por_categoria=False):
                     logger.warning(f"Categoria '{cat_nome}' sem dados — pulando")
                     continue
                 arquivos_gerados.extend(_processar_granularidades(
-                    df_cat, modelo, fazer_mensal, fazer_semanal, fazer_diario, sufixo=cat_sufixo
+                    df_cat, modelo, fazer_diario, fazer_semanal, fazer_mensal, sufixo=cat_sufixo
                 ))
     else:
         # ==========================================
@@ -376,7 +376,7 @@ def main(csv_path, all_flag=False, gerar_por_categoria=False):
         # ==========================================
         with TimingContext("Processamento de granularidades"):
             arquivos_gerados = _processar_granularidades(
-                df_base, modelo, fazer_mensal, fazer_semanal, fazer_diario
+                df_base, modelo, fazer_diario, fazer_semanal, fazer_mensal
             )
 
     tempo_total = time.time() - t0
