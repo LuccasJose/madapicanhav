@@ -59,18 +59,18 @@ async function carregarDados(canal = 'geral') {
 async function carregarDadosABC(canal = 'geral') {
     try {
         let arquivo;
-        
+
         if (canal === 'salao') {
             arquivo = './data/analise_abc_canais_salao.json';
         } else if (canal === 'ifood') {
             arquivo = './data/analise_abc_canais_ifood.json';
         } else {
-            arquivo = './data/analise_abc_final.json';
+            arquivo = './data/analise_abc_rigido.json';
         }
-        
+
         const response = await fetch(arquivo);
         if (!response.ok) throw new Error(`Erro ao carregar ${arquivo}`);
-        
+
         const dados = await response.json();
         console.log(`✅ Dados ABC carregados: ${arquivo}`, dados);
         return dados;
