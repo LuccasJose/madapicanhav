@@ -788,7 +788,7 @@
     /**
      * Normaliza dados ABC de canal para o formato esperado
      * Converte loja_id para id_loja e produtos para itens
-     * Adiciona historico com o faturamento para compatibilidade
+     * Usa historico do produto para compatibilidade com dados normais
      */
     function normalizarDadosABCCanal(dados) {
         if (!dados || !dados.dados_lojas) return null;
@@ -800,12 +800,11 @@
                 itens: (loja.produtos || []).map(produto => ({
                     produto: produto.produto,
                     nome: produto.produto,
-                    faturamento: produto.faturamento || 0,
-                    quantidade: produto.quantidade || 0,
+                    valor_total: produto.valor_total || 0,
                     classe: produto.classe || 'C',
-                    percentual_acumulado: produto.percentual_acumulado || 0,
-                    // Adiciona historico vazio para compatibilidade com dados normais
-                    historico: {}
+                    categoria: produto.categoria || 'ESPECIAIS',
+                    // Usa historico do produto (já vem preenchido)
+                    historico: produto.historico || {}
                 }))
             };
         });
@@ -1475,6 +1474,14 @@
         if (lojaABC && lojaABC.itens) {
             // Soma o faturamento de todos os produtos para o período selecionado
             lojaABC.itens.forEach(item => {
+                // Filtra por canal se um canal específico está selecionado
+                if (DashboardState.canalAtivo === 'salao') {
+                    // Salão: produtos que NÃO contêm "IFOOD" no nome
+                    if (item.produto && item.produto.toUpperCase().includes('IFOOD')) return;
+                } else if (DashboardState.canalAtivo === 'ifood') {
+                    // iFood: produtos que contêm "IFOOD" no nome
+                    if (!item.produto || !item.produto.toUpperCase().includes('IFOOD')) return;
+                }
 
                 const valorMes = item.historico && item.historico[mesPeriodo] ? item.historico[mesPeriodo] : 0;
                 if (valorMes > 0) {
@@ -1649,6 +1656,16 @@
             // IMPORTANTE: A curva ABC é SEMPRE calculada baseada no mês inteiro
             // Os filtros diários/semanais apenas mostram os produtos do mês com valores do período
             let itensParaABC = lojaABC.itens;
+
+            // Filtra por canal se um canal específico está selecionado
+            if (DashboardState.canalAtivo === 'salao') {
+                // Salão: produtos que NÃO contêm "IFOOD" no nome
+                itensParaABC = itensParaABC.filter(item => !item.produto || !item.produto.toUpperCase().includes('IFOOD'));
+            } else if (DashboardState.canalAtivo === 'ifood') {
+                // iFood: produtos que contêm "IFOOD" no nome
+                itensParaABC = itensParaABC.filter(item => item.produto && item.produto.toUpperCase().includes('IFOOD'));
+            }
+
             let produtosDodia = null;
             let ehPeriodoEspecifico = false;
 
@@ -1682,11 +1699,8 @@
 
                     // Valor do período específico (para exibição)
                     if (ehPeriodoEspecifico) {
-                        // Se é dia/semana, calcula proporção do período em relação ao mês
-                        if (totalGeralABC > 0) {
-                            const proporcaoPeriodo = totalPeriodo / totalGeralABC;
-                            valorPeriodo = valorMes * proporcaoPeriodo;
-                        }
+                        // Se é dia/semana, busca o valor direto do histórico
+                        valorPeriodo = item.historico[periodoSelecionado] || 0;
                     } else {
                         // Se é mês, usa o valor do mês
                         valorPeriodo = valorMes;
@@ -1825,7 +1839,13 @@
             // Filtro de categoria
             if (DashboardState.categoriaAtiva !== 'todos' && p.categoria !== DashboardState.categoriaAtiva) return false;
             // Filtro de canal - se um canal específico está selecionado, filtra os produtos
-            // Nota: Os produtos ABC já vêm com o canal correto quando reloadDataForCategories() é chamado
+            if (DashboardState.canalAtivo === 'salao') {
+                // Salão: produtos que NÃO contêm "IFOOD" no nome
+                if (p.produto && p.produto.toUpperCase().includes('IFOOD')) return false;
+            } else if (DashboardState.canalAtivo === 'ifood') {
+                // iFood: produtos que contêm "IFOOD" no nome
+                if (!p.produto || !p.produto.toUpperCase().includes('IFOOD')) return false;
+            }
             return true;
         });
 
@@ -1843,6 +1863,7 @@
 
         if (temFiltroAtivo) {
             // Calcula totais apenas para produtos filtrados
+            // Usa o valor do período (p.valor) que já foi calculado corretamente
             totalFiltrado = produtosFiltradosABC.reduce((sum, p) => sum + p.valor, 0);
 
             // IMPORTANTE: NÃO recalcula a classe ABC
@@ -1868,13 +1889,14 @@
                 }
             });
 
-            // Também filtra os totais de canal para manter consistência
-            // Calcula a proporção de produtos filtrados em relação ao total
-            const proporcaoFiltro = totalFiltrado > 0 && totalPeriodo > 0 ? totalFiltrado / totalPeriodo : 0;
-            totalSalaoFiltrado = totalSalao * proporcaoFiltro;
-            totalIfoodFiltrado = totalIfood * proporcaoFiltro;
-
-            console.log('[processData] Filtro ativo - Proporção:', proporcaoFiltro, 'Salão filtrado:', totalSalaoFiltrado, 'iFood filtrado:', totalIfoodFiltrado);
+            // Para canais: calcula a proporção de produtos filtrados em relação ao total
+            // Mas APENAS se há filtro de categoria/tipo de prato (não de canal)
+            if (DashboardState.categoriaAtiva !== 'todos' || TIPO_PRATO_ATIVO !== 'todos') {
+                const proporcaoFiltro = totalFiltrado > 0 && totalPeriodo > 0 ? totalFiltrado / totalPeriodo : 0;
+                totalSalaoFiltrado = totalSalao * proporcaoFiltro;
+                totalIfoodFiltrado = totalIfood * proporcaoFiltro;
+                console.log('[processData] Filtro de categoria/tipo - Proporção:', proporcaoFiltro, 'Salão filtrado:', totalSalaoFiltrado, 'iFood filtrado:', totalIfoodFiltrado);
+            }
         }
 
         // Se há um canal específico selecionado, usa apenas o total daquele canal
