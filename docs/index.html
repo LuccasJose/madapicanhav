@@ -281,14 +281,20 @@
             this.weekToDates = {};     // '2026-W06' -> ['2026-02-03', '2026-02-04', ...]
             this.monthToDates = {};    // '2026-02' -> ['2026-02-01', '2026-02-02', ...]
             this.allDates = new Set(); // Todas as datas disponíveis
+            this.currentStore = null;
         }
 
         /**
          * Inicializa o mapeador com todas as datas disponíveis
          * @param {Array} datas - Array de datas no formato YYYY-MM-DD
          */
-        initialize(datas) {
+        initialize(datas, storeId = null) {
+            this.dateToWeek = {};
+            this.dateToMonth = {};
+            this.weekToDates = {};
+            this.monthToDates = {};
             this.allDates = new Set(datas);
+            this.currentStore = storeId;
 
             datas.forEach(data => {
                 // Mapeia data para mês
@@ -442,7 +448,7 @@
         },
         saladas: {
             label: '🥗 Saladas',
-            patterns: [/\bSALADA\b/, /\bSALADINHA\b/, /\bSANTA SALADA\b/, /\bSALAD\b/, /\bAD\s+ARROZ\b/, /\bAD\s+PURE\b/, /\bAD\s+TUTU\b/, /\bAD\s+VINAGRETE\b/, /\bAD\s+MANDIOCA\b/, /\bAD\s+PACOCA\b/, /\bALIGOT\b/, /\bALMONDEGA\b/, /\bBANANA EMPANADA\b/, /\bBOLINHO\b/, /\bCROQUETA\b/, /\bFRITA\b/, /\bPURE\b/, /\bVINAGRETE\b/]
+            patterns: [/\bSALADA\b/, /\bSALADINHA\b/, /\bSANTA SALADA\b/, /\bSALAD\b/]
         },
         petiscos: {
             label: '🧆 Petiscos',
@@ -473,6 +479,28 @@
     // Cache para classificações já feitas
     const CLASSIFICACAO_CACHE = new Map();
 
+    // Regras prioritárias para evitar que tipos muito amplos capturem itens errados.
+    // Ex.: espetinhos não devem cair em carnes só porque têm "ANGUS" ou "FRANGO" no nome.
+    const CLASSIFICACAO_PRIORITARIA = [
+        {
+            tipo: 'petiscos',
+            patterns: [
+                /\bESPETINHO\b/, /\bPASTEL\b/, /\bPASTEIS\b/, /\bMINI PASTEIS\b/, /\bMINI PASTEL\b/,
+                /\bTORRESMO\b/, /\bQUEIJO COALHO\b/, /\bPROVOLONE\b/, /\bNUGGETS\b/, /\bPANCETA\b/,
+                /\bTIRA GOSTO\b/, /\bPORCAO\b/, /\bPORÇAO\b/, /\bPANELINHA\b/
+            ]
+        },
+        {
+            tipo: 'cervejas',
+            patterns: [
+                /\bCERVEJA\b/, /\bCHOPP\b/, /\bHEINEKEN\b/, /\bAMSTEL\b/, /\bSTELLA\b/,
+                /\bPETRA\b(?!.*BAR)/, /\bBUDWEISER\b/, /\bBRAHMA\b/, /\bLONG NECK\b/, /\bLN\b/,
+                /\bCERV\b/, /\bITAIPAVA\b/, /\bBADEN BADEN\b/, /\bBLACK PRINCESS\b/, /\bIPA\b/,
+                /\bPILSEN\b/, /\bLAGER\b/, /\bSTOUT\b/, /\bPORTER\b/, /\bWEIZEN\b/, /\bBELGIAN\b/
+            ]
+        }
+    ];
+
     function classificarTipoPrato(nomeProduto) {
         if (!nomeProduto) return 'outros';
 
@@ -482,6 +510,16 @@
         }
 
         const nome = nomeProduto.toUpperCase();
+
+        for (const { tipo, patterns } of CLASSIFICACAO_PRIORITARIA) {
+            for (const pattern of patterns) {
+                if (pattern.test(nome)) {
+                    CLASSIFICACAO_CACHE.set(nomeProduto, tipo);
+                    return tipo;
+                }
+            }
+        }
+
         for (const [tipo, config] of Object.entries(TIPO_PRATO_REGRAS)) {
             for (const pattern of config.patterns) {
                 if (pattern.test(nome)) {
@@ -493,6 +531,79 @@
 
         CLASSIFICACAO_CACHE.set(nomeProduto, 'outros');
         return 'outros';
+    }
+
+    const CATEGORIAS_PRIMARIAS = new Set(['COMIDAS', 'BEBIDAS', 'SOBREMESAS']);
+
+    function normalizarCategoriaProduto(categoria) {
+        if (!categoria) return '';
+        return String(categoria).trim().toUpperCase();
+    }
+
+    function criarMapaCategoriasCanonicas(analisesLoja, itensABC = []) {
+        const contagensPorProduto = new Map();
+
+        if (!analisesLoja) {
+            return new Map();
+        }
+
+        Object.values(analisesLoja).forEach(dadosPeriodo => {
+            if (!dadosPeriodo || !Array.isArray(dadosPeriodo.itens)) return;
+
+            dadosPeriodo.itens.forEach(item => {
+                const nomeProduto = item && item.produto;
+                const categoria = normalizarCategoriaProduto(item && item.categoria);
+
+                if (!nomeProduto || !categoria || categoria === 'CANAL') return;
+
+                if (!contagensPorProduto.has(nomeProduto)) {
+                    contagensPorProduto.set(nomeProduto, new Map());
+                }
+
+                const contagensCategoria = contagensPorProduto.get(nomeProduto);
+                contagensCategoria.set(categoria, (contagensCategoria.get(categoria) || 0) + 1);
+            });
+        });
+
+        if (Array.isArray(itensABC)) {
+            itensABC.forEach(item => {
+                const nomeProduto = item && item.produto;
+                const categoria = normalizarCategoriaProduto(item && item.categoria);
+
+                if (!nomeProduto || !categoria || categoria === 'CANAL') return;
+
+                if (!contagensPorProduto.has(nomeProduto)) {
+                    contagensPorProduto.set(nomeProduto, new Map());
+                }
+
+                const contagensCategoria = contagensPorProduto.get(nomeProduto);
+                contagensCategoria.set(categoria, (contagensCategoria.get(categoria) || 0) + 1);
+            });
+        }
+
+        const categoriasCanonicas = new Map();
+
+        contagensPorProduto.forEach((contagensCategoria, nomeProduto) => {
+            const categoriasOrdenadas = [...contagensCategoria.entries()]
+                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+            const categoriasPrimarias = categoriasOrdenadas.filter(([categoria]) => CATEGORIAS_PRIMARIAS.has(categoria));
+            const categoriaCanonica = categoriasPrimarias.length > 0
+                ? categoriasPrimarias[0][0]
+                : categoriasOrdenadas[0][0];
+
+            categoriasCanonicas.set(nomeProduto, categoriaCanonica);
+        });
+
+        return categoriasCanonicas;
+    }
+
+    function obterCategoriaCanonicaProduto(nomeProduto, categoriaOriginal, categoriasCanonicas) {
+        if (nomeProduto && categoriasCanonicas && categoriasCanonicas.has(nomeProduto)) {
+            return categoriasCanonicas.get(nomeProduto);
+        }
+
+        return normalizarCategoriaProduto(categoriaOriginal);
     }
 
     const NOMES_LOJAS = {
@@ -512,6 +623,7 @@
     let GRANULARIDADE = 'mensal';
     let CANAL_ATIVO = 'todos';
     let TIPO_PRATO_ATIVO = 'todos';
+    let PROCESS_DATA_REQUEST_ID = 0;
     const DATA_PATH = './data/';
 
     // Instâncias de gráficos
@@ -748,6 +860,7 @@
     async function setGranularity(tipo) {
         // Atualiza estado centralizado
         DashboardState.granularidade = tipo;
+        GRANULARIDADE = tipo;
 
         // Atualiza botões com requestAnimationFrame para otimização
         requestAnimationFrame(() => {
@@ -890,7 +1003,7 @@
 
         // Usar requestAnimationFrame para atualizar UI de forma otimizada
         requestAnimationFrame(() => {
-            document.querySelectorAll('.tipo-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#tipoFilter .tipo-btn').forEach(btn => btn.classList.remove('active'));
             const btnId = 'tipo' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
             const btn = document.getElementById(btnId);
             if (btn) btn.classList.add('active');
@@ -922,11 +1035,12 @@
 
     /**
      * Alterna filtro de canal de vendas (Salão, iFood, Todos).
-     * Recarrega dados do canal selecionado.
+     * Reprocessa os dados com o canal selecionado.
      */
     function toggleCanalVendas(canal) {
         // Atualiza estado centralizado
         DashboardState.canalAtivo = canal;
+        CANAL_ATIVO = canal;
 
         // Atualiza botões com requestAnimationFrame
         requestAnimationFrame(() => {
@@ -943,8 +1057,8 @@
             }
         });
 
-        // Recarrega dados com o novo canal
-        reloadDataForCategories();
+        // Reprocessa dados com o novo canal
+        processData().catch(e => console.error('Erro ao processar dados:', e));
     }
 
     function updateChartTitles() {
@@ -1043,6 +1157,10 @@
         const lojas = Array.isArray(JSON_VENDAS) ? JSON_VENDAS : [];
         const storeContainer = document.getElementById('storeList');
         storeContainer.innerHTML = '';
+        const lojaPreferida = String(ACTIVE_STORE || DashboardState.lojaAtiva || '');
+        let lojaSelecionada = false;
+        let primeiraLojaId = null;
+        let primeiroBotao = null;
 
         console.log('[initDashboard] Lojas encontradas:', lojas.length);
 
@@ -1074,29 +1192,40 @@
                 document.querySelectorAll('.store-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 updatePeriodSelect();
-                processData().catch(e => console.error('Erro ao processar dados:', e));
             };
             fragment.appendChild(btn);
 
             if (idx === 0) {
+                primeiraLojaId = id;
+                primeiroBotao = btn;
+            }
+
+            if (!lojaSelecionada && lojaPreferida && id === lojaPreferida) {
                 ACTIVE_STORE = id;
                 DashboardState.lojaAtiva = id;
                 btn.classList.add('active');
+                lojaSelecionada = true;
             }
         });
+
+        if (!lojaSelecionada && primeiroBotao) {
+            ACTIVE_STORE = primeiraLojaId;
+            DashboardState.lojaAtiva = primeiraLojaId;
+            primeiroBotao.classList.add('active');
+        }
 
         storeContainer.appendChild(fragment);
 
         // Inicializa primeira loja
-        if (lojas.length > 0) {
+        if (ACTIVE_STORE) {
             updatePeriodSelect();
-            processData().catch(e => console.error('Erro ao processar dados:', e));
         }
     }
 
     function updatePeriodSelect() {
         console.log('[updatePeriodSelect] Atualizando seletor de períodos');
         const select = document.getElementById('periodSelect');
+        const periodoAtual = DashboardState.periodoAtivo || select.value;
         select.innerHTML = '';
 
         console.log('[updatePeriodSelect] JSON_VENDAS:', { tipo: typeof JSON_VENDAS, isArray: Array.isArray(JSON_VENDAS), length: JSON_VENDAS ? JSON_VENDAS.length : 'undefined', ACTIVE_STORE });
@@ -1131,13 +1260,23 @@
             console.log('[updatePeriodSelect] Mantendo períodos diários (sem agregação)');
         }
 
+        let periodoSelecionado = false;
         periodos.forEach((p, i) => {
             const opt = document.createElement('option');
             opt.value = p;
             opt.textContent = formatPeriod(p);
-            if (i === 0) opt.selected = true;
+            if ((periodoAtual && p === periodoAtual) || (!periodoAtual && i === 0)) {
+                opt.selected = true;
+                periodoSelecionado = true;
+            }
             select.appendChild(opt);
         });
+
+        if (!periodoSelecionado && periodos.length > 0) {
+            select.selectedIndex = 0;
+        }
+
+        DashboardState.periodoAtivo = select.value || null;
 
         console.log('[updatePeriodSelect] Seletor atualizado com', periodos.length, 'períodos');
 
@@ -1201,6 +1340,14 @@
      * @returns {Object} Dados agregados do período
      */
     function agregarDadosPeriodo(analises, periodo) {
+        if (!analises || !periodo) {
+            return null;
+        }
+
+        if (analises[periodo]) {
+            return analises[periodo];
+        }
+
         const periodosAgregar = [];
 
         // Se for um período diário (YYYY-MM-DD), retorna os dados diretos
@@ -1382,221 +1529,130 @@
     }
 
     async function processData() {
-        console.log('[processData] Iniciando processamento de dados');
-        console.log('[processData] JSON_VENDAS:', { tipo: typeof JSON_VENDAS, isArray: Array.isArray(JSON_VENDAS), length: JSON_VENDAS ? JSON_VENDAS.length : 'undefined', ACTIVE_STORE });
-
         if (!JSON_VENDAS || !ACTIVE_STORE) {
-            console.error('processData: JSON_VENDAS ou ACTIVE_STORE não definidos', { JSON_VENDAS: !!JSON_VENDAS, ACTIVE_STORE });
             return;
         }
+
+        const requestId = ++PROCESS_DATA_REQUEST_ID;
+        const isStaleRequest = () => requestId !== PROCESS_DATA_REQUEST_ID;
 
         const loja = JSON_VENDAS.find(l => String(l.id_loja) === String(ACTIVE_STORE));
         if (!loja || !loja.analises) {
-            console.error('processData: Loja não encontrada ou sem análises', { ACTIVE_STORE, lojaEncontrada: !!loja, todasAsLojas: JSON_VENDAS.map(l => l.id_loja) });
             return;
         }
 
-        console.log('[processData] Loja encontrada:', { id_loja: loja.id_loja, analises: Object.keys(loja.analises).length });
+        let lojaABC = null;
+        if (JSON_ABC && Array.isArray(JSON_ABC)) {
+            lojaABC = JSON_ABC.find(l => String(l.id_loja) === String(ACTIVE_STORE));
+        }
+
+        const categoriasCanonicas = criarMapaCategoriasCanonicas(loja.analises, lojaABC ? lojaABC.itens : []);
 
         // Inicializa o PeriodMapper com todas as datas disponíveis (apenas uma vez)
-        // Usa as datas dos dados de canais, pois eles têm a granularidade mais fina
-        if (periodMapper.allDates.size === 0) {
+        if (periodMapper.allDates.size === 0 || periodMapper.currentStore !== String(ACTIVE_STORE)) {
             let todasAsDatas = [];
 
             // Carrega dados de canais se ainda não estão carregados
             if (!JSON_CANAIS_SALAO || !JSON_CANAIS_SALAO.dados_lojas) {
                 await carregarDadosCanalsPorPeriodo();
+                if (isStaleRequest()) return;
             }
 
-            // Tenta usar datas dos dados de canais (mais confiável)
+            // Tenta usar datas dos dados de canais
             if (JSON_CANAIS_SALAO && JSON_CANAIS_SALAO.dados_lojas) {
-                console.log('[processData] Procurando loja', ACTIVE_STORE, 'em', JSON_CANAIS_SALAO.dados_lojas.length, 'lojas');
                 const lojaCanal = JSON_CANAIS_SALAO.dados_lojas.find(l => {
-                    const lojaId = String(l.loja_id || l.id_loja);
-                    const activeStoreStr = String(ACTIVE_STORE);
-                    console.log('[processData] Comparando:', lojaId, '===', activeStoreStr, '?', lojaId === activeStoreStr);
-                    return lojaId === activeStoreStr;
+                    return String(l.loja_id || l.id_loja) === String(ACTIVE_STORE);
                 });
                 if (lojaCanal && lojaCanal.analises) {
                     todasAsDatas = Object.keys(lojaCanal.analises).filter(k => k.match(/^\d{4}-\d{2}-\d{2}$/)).sort();
-                    console.log('[processData] Datas encontradas:', todasAsDatas.length);
-                } else {
-                    console.error('[processData] Loja não encontrada em canais ou sem análises');
                 }
             }
 
-            console.log('[processData] Inicializando PeriodMapper com', todasAsDatas.length, 'datas');
             if (todasAsDatas.length > 0) {
-                console.log('[processData] Primeiras 5 datas:', todasAsDatas.slice(0, 5));
-                console.log('[processData] Últimas 5 datas:', todasAsDatas.slice(-5));
-                periodMapper.initialize(todasAsDatas);
-                console.log('[processData] PeriodMapper inicializado. Meses únicos:', Object.keys(periodMapper.monthToDates).length);
-            } else {
-                console.error('[processData] ERRO: Nenhuma data encontrada para inicializar PeriodMapper!');
+                periodMapper.initialize(todasAsDatas, String(ACTIVE_STORE));
             }
         }
 
         const periodoSelecionado = document.getElementById('periodSelect').value;
 
-        console.log('[processData] Período selecionado:', periodoSelecionado);
-        console.log('[processData] Tipo de período:', periodoSelecionado.match(/^\d{4}-\d{2}$/) ? 'MENSAL' : periodoSelecionado.match(/^\d{4}-W\d{2}$/) ? 'SEMANAL' : periodoSelecionado.match(/^\d{4}-\d{2}-\d{2}$/) ? 'DIARIO' : 'DESCONHECIDO');
-
         // Carrega dados de canais para calcular o total correto
         if (!JSON_CANAIS_SALAO || !JSON_CANAIS_IFOOD) {
             await carregarDadosCanalsPorPeriodo();
+            if (isStaleRequest()) return;
         }
 
-        // Extrai o mês para buscar no ABC (que só tem dados mensais)
-        const mesPeriodo = extrairMesDoPeriodo(periodoSelecionado);
+        // Obtém os dados do período selecionado diretamente dos dados temporais
+        const dadosPeriodoSelecionado = agregarDadosPeriodo(loja.analises, periodoSelecionado);
 
-        console.log('[processData] Mês extraído:', mesPeriodo);
-
-        // Calcula o total do período a partir do histórico dos produtos
-        let totalPeriodo = 0;
+        // Calcula o total do período a partir dos dados temporais
+        let totalPeriodo = dadosPeriodoSelecionado
+            ? (dadosPeriodoSelecionado.total || dadosPeriodoSelecionado.faturamento || 0)
+            : 0;
         const itens = [];
 
-        // Busca os itens em JSON_ABC (que tem a estrutura com itens)
-        console.log('[processData] Procurando itens em JSON_ABC:', { tipo: typeof JSON_ABC, isArray: Array.isArray(JSON_ABC), length: JSON_ABC ? JSON_ABC.length : 'undefined', ACTIVE_STORE });
-
-        let lojaABC = null;
-        if (JSON_ABC && Array.isArray(JSON_ABC)) {
-            lojaABC = JSON_ABC.find(l => String(l.id_loja) === String(ACTIVE_STORE));
-            console.log('[processData] Loja ABC encontrada:', !!lojaABC, 'com itens:', lojaABC && lojaABC.itens ? lojaABC.itens.length : 0);
-        } else {
-            console.error('[processData] JSON_ABC não é um array válido!');
-        }
-
-        // Verifica se lojaABC é null antes de continuar
-        if (!lojaABC) {
-            console.error('[processData] Loja ABC não encontrada para ACTIVE_STORE:', ACTIVE_STORE);
-        }
-
-        if (lojaABC && lojaABC.itens) {
-            // Soma o faturamento de todos os produtos para o período selecionado
-            lojaABC.itens.forEach(item => {
+        if (dadosPeriodoSelecionado && Array.isArray(dadosPeriodoSelecionado.itens)) {
+            dadosPeriodoSelecionado.itens.forEach(item => {
                 // Filtra por canal se um canal específico está selecionado
                 if (DashboardState.canalAtivo === 'salao') {
-                    // Salão: produtos que NÃO contêm "IFOOD" no nome
                     if (item.produto && item.produto.toUpperCase().includes('IFOOD')) return;
                 } else if (DashboardState.canalAtivo === 'ifood') {
-                    // iFood: produtos que contêm "IFOOD" no nome
                     if (!item.produto || !item.produto.toUpperCase().includes('IFOOD')) return;
                 }
 
-                const valorMes = item.historico && item.historico[mesPeriodo] ? item.historico[mesPeriodo] : 0;
-                if (valorMes > 0) {
-                    totalPeriodo += valorMes;
+                const valorItem = item.valor || item.faturamento || 0;
+                if (valorItem > 0) {
                     itens.push({
                         produto: item.produto,
-                        valor: valorMes,
+                        valor: valorItem,
+                        tipo: item.tipo,
                         classe: item.classe,
-                        categoria: item.categoria,
-                        tipo_prato: item.tipo_prato
+                        categoria: obterCategoriaCanonicaProduto(item.produto, item.categoria, categoriasCanonicas),
+                        tipo_prato: item.tipo_prato,
+                        analise_ia: item.analise_ia
                     });
                 }
             });
         }
 
-        console.log('[processData] Total do período (ABC Final):', totalPeriodo, 'Produtos:', itens.length);
+        const ehPeriodoEspecifico = !!(
+            periodoSelecionado.match(/^\d{4}-\d{2}-\d{2}$/) ||
+            periodoSelecionado.match(/^\d{4}-W\d{2}$/)
+        );
+        const produtosDoPeriodoSelecionado = ehPeriodoEspecifico && itens.length > 0
+            ? new Set(itens.map(item => item.produto))
+            : null;
 
-        // Função auxiliar para agregar dados de canais por período
-        // Usa o PeriodMapper para converter qualquer período para datas diárias
-        function agregarDadosCanalPorPeriodo(dadosCanal, periodo) {
-            if (!dadosCanal || !dadosCanal.dados_lojas) return 0;
+        const itensPeriodoOriginais = dadosPeriodoSelecionado && Array.isArray(dadosPeriodoSelecionado.itens)
+            ? dadosPeriodoSelecionado.itens
+            : [];
 
-            const loja = dadosCanal.dados_lojas.find(l => String(l.loja_id || l.id_loja) === String(ACTIVE_STORE));
-            if (!loja || !loja.analises) return 0;
+        // Calcula a divisão de canais diretamente pelos itens do período selecionado
+        let totalSalao = itensPeriodoOriginais
+            .filter(item => !item.produto || !item.produto.toUpperCase().includes('IFOOD'))
+            .reduce((sum, item) => sum + (item.valor || item.faturamento || 0), 0);
 
-            // Usa o PeriodMapper para obter todas as datas do período
-            const datas = periodMapper.getDatesForPeriod(periodo);
+        let totalIfood = itensPeriodoOriginais
+            .filter(item => item.produto && item.produto.toUpperCase().includes('IFOOD'))
+            .reduce((sum, item) => sum + (item.valor || item.faturamento || 0), 0);
 
-            console.log('[agregarDadosCanalPorPeriodo] Período:', periodo, 'Datas encontradas:', datas.length, 'Primeiras 3:', datas.slice(0, 3));
-            console.log('[agregarDadosCanalPorPeriodo] monthToDates para este período:', periodMapper.monthToDates[periodo]);
-
-            let total = 0;
-            datas.forEach(data => {
-                if (loja.analises[data]) {
-                    const dados = loja.analises[data];
-                    if (typeof dados === 'object' && dados.faturamento) {
-                        total += dados.faturamento;
-                    }
-                }
-            });
-
-            console.log('[agregarDadosCanalPorPeriodo] Total calculado:', total);
-            return total;
-        }
-
-        // Função auxiliar para calcular total de canal filtrado por categoria
-        // Usa dados ABC de canais que agora têm informação de categoria
-        function calcularTotalCanalPorCategoria(dadosABCCanal, categoria) {
-            if (!dadosABCCanal || !dadosABCCanal.dados_lojas) return 0;
-
-            const loja = dadosABCCanal.dados_lojas.find(l => String(l.loja_id || l.id_loja) === String(ACTIVE_STORE));
-            if (!loja || !loja.produtos) return 0;
-
-            let total = 0;
-            loja.produtos.forEach(produto => {
-                // Se categoria é 'todos', soma todos os produtos
-                // Senão, filtra por categoria
-                if (categoria === 'todos' || produto.categoria === categoria) {
-                    total += produto.faturamento || 0;
-                }
-            });
-
-            console.log(`[calcularTotalCanalPorCategoria] Categoria: ${categoria}, Total: ${total}`);
-            return total;
-        }
-
-        // Calcula o total correto somando todos os canais
-        // IMPORTANTE: Sempre usa dados temporais de canais (por período), nunca dados ABC acumulados
-        let totalSalao = 0;
-        let totalIfood = 0;
-
-        if (JSON_CANAIS_SALAO && JSON_CANAIS_SALAO.dados_lojas) {
-            // Usa dados temporais de canais (por período)
-            totalSalao = agregarDadosCanalPorPeriodo(JSON_CANAIS_SALAO, periodoSelecionado);
-            console.log('[processData] Salão - Período:', periodoSelecionado, 'Total:', totalSalao);
-        }
-
-        if (JSON_CANAIS_IFOOD && JSON_CANAIS_IFOOD.dados_lojas) {
-            // Usa dados temporais de canais (por período)
-            totalIfood = agregarDadosCanalPorPeriodo(JSON_CANAIS_IFOOD, periodoSelecionado);
-            console.log('[processData] iFood - Período:', periodoSelecionado, 'Total:', totalIfood);
-        }
-
-        // Total correto é a soma de todos os canais (apenas para exibição do breakdown)
+        // Total correto é a soma de todos os canais
         const totalPeriodoCompleto = totalSalao + totalIfood;
-        console.log('[processData] Total do período (ABC Final):', totalPeriodo, 'Salão:', totalSalao, 'iFood:', totalIfood, 'Itens:', itens.length);
-        console.log('[processData] Soma Salão+iFood:', totalPeriodoCompleto);
 
-        // Se conseguiu carregar dados de canais, usa a soma de Salão + iFood
-        // Caso contrário, mantém o total do ABC Final
         if (totalPeriodoCompleto > 0) {
             totalPeriodo = totalPeriodoCompleto;
-            console.log('[processData] Usando soma de canais como total');
-        } else {
-            console.log('[processData] Usando total do ABC Final (dados de canais não disponíveis)');
         }
 
         // Se um canal específico está selecionado, usa apenas o total daquele canal
         if (DashboardState.canalAtivo === 'salao') {
             totalPeriodo = totalSalao;
-            console.log('[processData] Filtrando por Salão:', totalPeriodo);
         } else if (DashboardState.canalAtivo === 'ifood') {
             totalPeriodo = totalIfood;
-            console.log('[processData] Filtrando por iFood:', totalPeriodo);
-        } else {
-            console.log('[processData] Usando total completo (Salão + iFood):', totalPeriodo);
         }
 
-        // Monta produtos do período (temporal) para rankings TOP/BOTTOM
-        // IMPORTANTE: Evita duplicatas (diário/semanal têm TOP e MENOS VENDIDOS do mesmo produto)
+        // Monta produtos do período (temporal)
         let produtosMap = {};
 
-        // Se não há itens (dados de canal), cria um item genérico
         if (itens.length === 0 && totalPeriodo > 0) {
-            console.log('processData: Usando dados agregados de canal');
             produtosMap['Vendas do Período'] = {
                 valor: totalPeriodo,
                 insights: [],
@@ -1607,10 +1663,15 @@
             itens.forEach(item => {
                 const nome = item.produto;
                 const valor = item.valor || 0;
-                // Se o produto já existe, não adiciona novamente (evita duplicatas)
                 if (!produtosMap[nome]) {
-                    produtosMap[nome] = { valor: valor, insights: [], tipo: item.tipo, categoria: item.categoria || '' };
-                    if (item.analise_ia && item.analise_ia.diagnostico && item.analise_ia.diagnostico !== 'IA não disponível') {
+                    produtosMap[nome] = { valor: 0, insights: [], tipo: item.tipo, categoria: item.categoria || '' };
+                }
+
+                produtosMap[nome].valor += valor;
+
+                if (item.analise_ia && item.analise_ia.diagnostico && item.analise_ia.diagnostico !== 'IA não disponível') {
+                    const insightJaExiste = produtosMap[nome].insights.some(insight => insight.texto === item.analise_ia.diagnostico);
+                    if (!insightJaExiste) {
                         produtosMap[nome].insights.push({ texto: item.analise_ia.diagnostico, acao: item.analise_ia.acao });
                     }
                 }
@@ -1620,8 +1681,6 @@
         let produtosTemporal = Object.entries(produtosMap)
             .map(([nome, dados]) => ({ nome, valor: dados.valor, insights: dados.insights, tipo: dados.tipo, categoria: dados.categoria }))
             .sort((a, b) => b.valor - a.valor);
-
-        console.log('processData: Produtos temporais criados', { produtosTemporalLength: produtosTemporal.length, primeiros3: produtosTemporal.slice(0, 3) });
 
         // =====================================================
         // USA DADOS ABC COMPLETOS (todos os produtos da loja)
@@ -1645,6 +1704,29 @@
 
         let totalGeralABC = totalMesInteiro;  // Usa o total do mês inteiro para cálculos de proporção
 
+        function criarInsightsPeriodo(classe, valor) {
+            if (!(valor > 0)) return [];
+
+            if (classe === 'A') {
+                return [{
+                    texto: `Produto estrela com faturamento de R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. Manter em estoque e promover.`,
+                    acao: 'Manter em destaque e garantir disponibilidade'
+                }];
+            }
+
+            if (classe === 'B') {
+                return [{
+                    texto: `Produto importante com faturamento de R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. Monitorar desempenho.`,
+                    acao: 'Monitorar vendas e considerar promoções'
+                }];
+            }
+
+            return [{
+                texto: `Produto com baixo faturamento de R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. Avaliar descontinuação.`,
+                acao: 'Revisar viabilidade ou descontinuar'
+            }];
+        }
+
         // lojaABC já foi definida acima, apenas usa a variável existente
 
         // Verifica se está usando dados de canal (sem historico)
@@ -1666,18 +1748,14 @@
                 itensParaABC = itensParaABC.filter(item => item.produto && item.produto.toUpperCase().includes('IFOOD'));
             }
 
-            let produtosDodia = null;
-            let ehPeriodoEspecifico = false;
-
-            // Se está selecionando um dia ou semana específica, marca quais produtos foram vendidos
-            if ((periodoSelecionado.match(/^\d{4}-\d{2}-\d{2}$/) || periodoSelecionado.match(/^\d{4}-W\d{2}$/)) && itens.length > 0) {
-                produtosDodia = new Set(itens.map(i => i.produto));
-                ehPeriodoEspecifico = true;
-                console.log('[processData] Período específico (dia/semana):', { produtosDodia: produtosDodia.size, ehPeriodoEspecifico });
-            }
-
             // Primeiro, mapeia todos os itens com valores do MÊS INTEIRO (para calcular ABC)
             // Se for período específico (dia/semana), também calcula o valor do período para exibição
+
+            // Cria um mapa de produtos temporais para busca rápida
+            const produtosTemporalMap = new Map(
+                produtosTemporal.map(produto => [produto.nome, produto])
+            );
+
             let todosABCComValores = itensParaABC.map(item => {
                 let valorMes = 0;  // Valor do mês inteiro (para calcular ABC)
                 let valorPeriodo = 0;  // Valor do período específico (para exibição)
@@ -1699,8 +1777,9 @@
 
                     // Valor do período específico (para exibição)
                     if (ehPeriodoEspecifico) {
-                        // Se é dia/semana, busca o valor direto do histórico
-                        valorPeriodo = item.historico[periodoSelecionado] || 0;
+                        // Se é dia/semana, busca o valor dos dados temporais
+                        const itemTemporal = produtosTemporalMap.get(item.produto);
+                        valorPeriodo = itemTemporal ? (itemTemporal.valor || 0) : 0;
                     } else {
                         // Se é mês, usa o valor do mês
                         valorPeriodo = valorMes;
@@ -1724,34 +1803,15 @@
                 }
 
                 // Gerar insights baseado na classe ABC
-                const insights = [];
                 const classe = item.classe || 'C';
-
-                if (valorPeriodo > 0) {  // Só gera insight se há faturamento
-                    let textoInsight = '';
-                    let acaoInsight = '';
-
-                    if (classe === 'A') {
-                        textoInsight = `Produto estrela com faturamento de R$ ${valorPeriodo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. Manter em estoque e promover.`;
-                        acaoInsight = 'Manter em destaque e garantir disponibilidade';
-                    } else if (classe === 'B') {
-                        textoInsight = `Produto importante com faturamento de R$ ${valorPeriodo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. Monitorar desempenho.`;
-                        acaoInsight = 'Monitorar vendas e considerar promoções';
-                    } else {
-                        textoInsight = `Produto com baixo faturamento de R$ ${valorPeriodo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}. Avaliar descontinuação.`;
-                        acaoInsight = 'Revisar viabilidade ou descontinuar';
-                    }
-
-                    insights.push({ texto: textoInsight, acao: acaoInsight });
-                }
 
                 return {
                     nome: item.produto,
                     valor: valorPeriodo,  // Usa o valor do período para exibição
                     valorMes: valorMes,   // Mantém o valor do mês para referência
                     classe: classe,
-                    insights: insights,
-                    categoria: item.categoria || '',
+                        insights: criarInsightsPeriodo(classe, valorPeriodo),
+                    categoria: obterCategoriaCanonicaProduto(item.produto, item.categoria, categoriasCanonicas),
                 };
             }).sort((a, b) => b.valorMes - a.valorMes);  // Ordena por valor do mês (não do período)
 
@@ -1760,16 +1820,11 @@
             // Apenas usa os dados já calculados
             todosABC = todosABCComValores;
 
-            // NÃO filtra por produtos do dia aqui
-            // Mantém TODOS os produtos da curva ABC do mês
-            // O filtro de categoria/tipo de prato será aplicado depois
-            console.log('[processData] Mantendo todos os produtos da curva ABC:', { totalProdutos: todosABC.length, produtosDodia: produtosDodia ? produtosDodia.size : 0 });
-
             // Conta os produtos por classe (para exibição)
             todosABC.forEach(p => {
                 if (p.classe === 'A') {
                     countA++;
-                    valorA += p.valor;  // Usa o valor do período para exibição
+                    valorA += p.valor;
                 } else if (p.classe === 'B') {
                     countB++;
                     valorB += p.valor;
@@ -1780,10 +1835,6 @@
             });
         } else {
             // Fallback: calcula ABC a partir dos dados temporais
-            // Isso acontece quando:
-            // 1. Não há dados ABC disponíveis, OU
-            // 2. Está usando dados de canal (que não têm historico por período)
-            console.log('processData: Usando fallback com dados temporais', { produtosTemporalLength: produtosTemporal.length, totalGeralABC });
 
             // IMPORTANTE: Calcula ABC baseado SEMPRE no valorMes (total do mês inteiro)
             // Não recalcula baseado no valor do período
@@ -1824,30 +1875,56 @@
         }
 
         // Adiciona classificação de tipo de prato a todos os produtos
-        todosABC = todosABC.map(p => ({ ...p, tipoPrato: classificarTipoPrato(p.nome) }));
+        todosABC = todosABC.map(p => ({
+            ...p,
+            categoria: obterCategoriaCanonicaProduto(p.nome, p.categoria, categoriasCanonicas),
+            tipoPrato: classificarTipoPrato(p.nome)
+        }));
 
         // Criar Map para lookup rápido de produtos ABC (evita find() repetido)
         const abcMap = new Map(todosABC.map(p => [p.nome, p]));
 
-        // Verifica se há filtro de tipo de prato ou categoria ativo (NÃO inclui canal)
-        const temFiltroAtivo = TIPO_PRATO_ATIVO !== 'todos' || DashboardState.categoriaAtiva !== 'todos';
+        const produtosPeriodoComABC = produtosTemporal.map(produto => {
+            const produtoABC = abcMap.get(produto.nome);
+            const classe = produtoABC ? (produtoABC.classe || 'C') : 'C';
+            const insightsValidos = Array.isArray(produto.insights)
+                ? produto.insights.filter(insight =>
+                    insight && insight.texto &&
+                    insight.texto !== 'Período histórico' &&
+                    insight.texto !== 'IA não disponível'
+                )
+                : [];
 
-        // Aplica filtro de tipo de prato, categoria e canal para insights
-        let produtosFiltradosABC = todosABC.filter(p => {
-            // Filtro de tipo de prato
-            if (TIPO_PRATO_ATIVO !== 'todos' && p.tipoPrato !== TIPO_PRATO_ATIVO) return false;
-            // Filtro de categoria
-            if (DashboardState.categoriaAtiva !== 'todos' && p.categoria !== DashboardState.categoriaAtiva) return false;
-            // Filtro de canal - se um canal específico está selecionado, filtra os produtos
+            return {
+                nome: produto.nome,
+                valor: produto.valor || 0,
+                valorMes: produtoABC ? (produtoABC.valorMes || produtoABC.valor || produto.valor || 0) : (produto.valor || 0),
+                classe,
+                insights: insightsValidos.length > 0 ? insightsValidos : criarInsightsPeriodo(classe, produto.valor || 0),
+                categoria: obterCategoriaCanonicaProduto(produto.nome, produto.categoria || (produtoABC ? produtoABC.categoria : ''), categoriasCanonicas),
+                tipoPrato: classificarTipoPrato(produto.nome)
+            };
+        });
+
+        const produtoPassaFiltros = produto => {
+            if (TIPO_PRATO_ATIVO !== 'todos' && produto.tipoPrato !== TIPO_PRATO_ATIVO) return false;
+            if (DashboardState.categoriaAtiva !== 'todos' && produto.categoria !== DashboardState.categoriaAtiva) return false;
             if (DashboardState.canalAtivo === 'salao') {
-                // Salão: produtos que NÃO contêm "IFOOD" no nome
-                if (p.produto && p.produto.toUpperCase().includes('IFOOD')) return false;
+                if (produto.nome && produto.nome.toUpperCase().includes('IFOOD')) return false;
             } else if (DashboardState.canalAtivo === 'ifood') {
-                // iFood: produtos que contêm "IFOOD" no nome
-                if (!p.produto || !p.produto.toUpperCase().includes('IFOOD')) return false;
+                if (!produto.nome || !produto.nome.toUpperCase().includes('IFOOD')) return false;
             }
             return true;
-        });
+        };
+
+        // Verifica se há filtro de tipo de prato ou categoria ativo (NÃO inclui canal)
+        const temFiltroProdutoAtivo = TIPO_PRATO_ATIVO !== 'todos' || DashboardState.categoriaAtiva !== 'todos';
+        const temFiltroCanalAtivo = DashboardState.canalAtivo !== 'todos';
+        const temFiltroAtivo = temFiltroProdutoAtivo || temFiltroCanalAtivo;
+
+        // Aplica filtro de tipo de prato, categoria e canal para insights
+        let produtosFiltradosABC = todosABC.filter(produtoPassaFiltros);
+        let produtosPeriodoFiltrados = produtosPeriodoComABC.filter(produtoPassaFiltros);
 
         // Calcula total filtrado e recalcula ABC se há filtro ativo
         let totalFiltrado = totalPeriodo;  // Usa o total do período selecionado, não do mês inteiro
@@ -1889,42 +1966,58 @@
                 }
             });
 
-            // Para canais: calcula a proporção de produtos filtrados em relação ao total
-            // Mas APENAS se há filtro de categoria/tipo de prato (não de canal)
-            if (DashboardState.categoriaAtiva !== 'todos' || TIPO_PRATO_ATIVO !== 'todos') {
-                const proporcaoFiltro = totalFiltrado > 0 && totalPeriodo > 0 ? totalFiltrado / totalPeriodo : 0;
-                totalSalaoFiltrado = totalSalao * proporcaoFiltro;
-                totalIfoodFiltrado = totalIfood * proporcaoFiltro;
-                console.log('[processData] Filtro de categoria/tipo - Proporção:', proporcaoFiltro, 'Salão filtrado:', totalSalaoFiltrado, 'iFood filtrado:', totalIfoodFiltrado);
+            // Para a divisão de canais, usa os itens reais do período filtrado
+            if (temFiltroProdutoAtivo) {
+                const tipoPratoCache = {};
+
+                let itensFiltrados = itens.filter(item => {
+                    if (DashboardState.categoriaAtiva !== 'todos' && item.categoria !== DashboardState.categoriaAtiva) return false;
+                    if (TIPO_PRATO_ATIVO !== 'todos') {
+                        const produto = item.produto;
+                        if (!tipoPratoCache[produto]) {
+                            tipoPratoCache[produto] = classificarTipoPrato(produto);
+                        }
+                        if (tipoPratoCache[produto] !== TIPO_PRATO_ATIVO) return false;
+                    }
+                    return true;
+                });
+
+                totalSalaoFiltrado = itensFiltrados
+                    .filter(item => !item.produto || !item.produto.toUpperCase().includes('IFOOD'))
+                    .reduce((sum, item) => sum + (item.valor || 0), 0);
+                totalIfoodFiltrado = itensFiltrados
+                    .filter(item => item.produto && item.produto.toUpperCase().includes('IFOOD'))
+                    .reduce((sum, item) => sum + (item.valor || 0), 0);
             }
+        }
+
+        if (itens.length > 0) {
+            totalFiltrado = produtosPeriodoFiltrados.reduce((sum, p) => sum + (p.valor || 0), 0);
         }
 
         // Se há um canal específico selecionado, usa apenas o total daquele canal
         if (DashboardState.canalAtivo === 'salao') {
             totalFiltrado = totalSalaoFiltrado;
-            totalIfoodFiltrado = 0;  // Zera o outro canal
-            console.log('[processData] Filtrando por Salão:', totalFiltrado);
+            totalIfoodFiltrado = 0;
         } else if (DashboardState.canalAtivo === 'ifood') {
             totalFiltrado = totalIfoodFiltrado;
-            totalSalaoFiltrado = 0;  // Zera o outro canal
-            console.log('[processData] Filtrando por iFood:', totalFiltrado);
+            totalSalaoFiltrado = 0;
         }
 
         // Atualiza tela
         document.getElementById('totalFat').innerText = totalFiltrado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        document.getElementById('totalItens').innerText = `${produtosFiltradosABC.filter(p => p.valor > 0).length} produtos no período`;
+        document.getElementById('totalItens').innerText = `${produtosPeriodoFiltrados.filter(p => p.valor > 0).length} produtos no período`;
 
         // Atualiza breakdown por canal (agora com valores filtrados)
         document.getElementById('totalSalao').innerText = totalSalaoFiltrado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         document.getElementById('totalIfood').innerText = totalIfoodFiltrado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Salva estados (todos os produtos ABC)
-        window.currentProducts = todosABC;
+        window.currentProducts = produtosPeriodoFiltrados;
         window.isFilteredByABC = false;
 
-        // Rankings: sempre usa dados ABC (tem todos os produtos com valor no período)
-        // Aplica filtro de tipo de prato
-        let produtosFiltradosTemporal = produtosFiltradosABC.filter(p => p.valor > 0).map(p => ({
+        // Rankings e insights: usam os produtos reais do período selecionado
+        let produtosFiltradosTemporal = produtosPeriodoFiltrados.filter(p => p.valor > 0).map(p => ({
             ...p,
             tipo: 'TOP', // Marca como TOP para renderizar
             valor: p.valor
@@ -1938,32 +2031,32 @@
 
         // Se está em um dia específico, precisa manter apenas os itens daquele dia
         // mesmo quando remove o filtro de categoria
-        const estaNoDiaEspecifico = periodoSelecionado.match(/^\d{4}-\d{2}-\d{2}$/);
-        const produtosDodia = estaNoDiaEspecifico && itens.length > 0 ? new Set(itens.map(i => i.produto)) : null;
-
-        if (temFiltroAtivo || estaNoDiaEspecifico) {
+        if (temFiltroAtivo || ehPeriodoEspecifico) {
             // Se há filtro OU está em um dia específico, recalcula totais apenas para produtos filtrados
             analisesFiltradas = {};
             for (const periodo in loja.analises) {
                 const dadosPeriodo = loja.analises[periodo];
                 if (dadosPeriodo.itens && Array.isArray(dadosPeriodo.itens)) {
                     const itensFiltrados = dadosPeriodo.itens.filter(item => {
-                        // Se está em um dia específico, filtra apenas os produtos daquele dia
-                        if (produtosDodia && !produtosDodia.has(item.produto)) return false;
+                        // Se está em um período específico, filtra apenas os produtos vendidos no período selecionado
+                        if (produtosDoPeriodoSelecionado && !produtosDoPeriodoSelecionado.has(item.produto)) return false;
+
+                        // Filtro de canal
+                        if (DashboardState.canalAtivo === 'salao') {
+                            if (item.produto && item.produto.toUpperCase().includes('IFOOD')) return false;
+                        } else if (DashboardState.canalAtivo === 'ifood') {
+                            if (!item.produto || !item.produto.toUpperCase().includes('IFOOD')) return false;
+                        }
 
                         // Filtro de tipo de prato
                         const tipoPrato = classificarTipoPrato(item.produto);
                         if (TIPO_PRATO_ATIVO !== 'todos' && tipoPrato !== TIPO_PRATO_ATIVO) return false;
                         // Filtro de categoria
-                        if (DashboardState.categoriaAtiva !== 'todos' && item.categoria !== DashboardState.categoriaAtiva) return false;
+                        const categoriaProduto = obterCategoriaCanonicaProduto(item.produto, item.categoria, categoriasCanonicas);
+                        if (DashboardState.categoriaAtiva !== 'todos' && categoriaProduto !== DashboardState.categoriaAtiva) return false;
                         return true;
                     });
                     const totalFiltrado = itensFiltrados.reduce((sum, item) => sum + (item.valor || 0), 0);
-
-                    // DEBUG: Log para verificar cálculos
-                    if (periodo === periodoSelecionado) {
-                        console.log(`[FILTRO ${TIPO_PRATO_ATIVO} + ${DashboardState.categoriaAtiva}] Período: ${periodo}, Total Original: ${dadosPeriodo.total}, Total Filtrado: ${totalFiltrado}, Itens: ${itensFiltrados.length}/${dadosPeriodo.itens.length}`);
-                    }
 
                     analisesFiltradas[periodo] = {
                         ...dadosPeriodo,
@@ -1977,13 +2070,15 @@
             }
         }
 
+        if (isStaleRequest()) return;
+
         // Renderiza
         renderChartHistory(analisesFiltradas);
         renderABCChart(countAFiltrado, countBFiltrado, countCFiltrado, valorAFiltrado, valorBFiltrado, valorCFiltrado, totalFiltrado);
         renderList('listBest', window.originalBestRanking, 'success');
         renderList('listWorst', window.originalWorstRanking, 'danger');
         updateRestoreButtons();
-        renderAllInsights(produtosFiltradosABC);
+        renderAllInsights(produtosPeriodoFiltrados);
 
         // Atualiza indicadores de período e filtros
         updateFilterDisplay();
@@ -1997,7 +2092,10 @@
     function renderList(elementId, items, colorTheme) {
         const container = document.getElementById(elementId);
         if (items.length === 0) {
-            container.innerHTML = '<div style="padding:10px; color:#94a3b8;">Sem dados para este período.</div>';
+            const mensagem = (DashboardState.tipoPratoAtivo !== 'todos' || DashboardState.categoriaAtiva !== 'todos' || DashboardState.canalAtivo !== 'todos')
+                ? 'Nenhum produto encontrado para os filtros selecionados neste período.'
+                : 'Sem dados para este período.';
+            container.innerHTML = `<div style="padding:10px; color:#94a3b8;">${mensagem}</div>`;
             return;
         }
 
@@ -2027,11 +2125,6 @@
 
     function renderAllInsights(todosProdutos) {
         const container = document.getElementById('allInsightsContainer');
-        console.log('renderAllInsights: Produtos recebidos', {
-            total: todosProdutos.length,
-            comInsights: todosProdutos.filter(p => p.insights && p.insights.length > 0).length,
-            primeiros3: todosProdutos.slice(0, 3).map(p => ({ nome: p.nome, insights: p.insights ? p.insights.length : 0 }))
-        });
         const prods = todosProdutos.filter(p => p.insights && p.insights.length > 0);
         window.allInsightsProducts = prods;
         document.getElementById('insightCount').innerText = `${prods.length} encontrados`;
@@ -2041,7 +2134,10 @@
     function displayInsights(prods) {
         const container = document.getElementById('allInsightsContainer');
         if (prods.length === 0) {
-            container.innerHTML = '<p style="color:#94a3b8; padding:20px; grid-column: 1/-1;">Nenhum insight disponível para este período.</p>';
+            const mensagem = (DashboardState.tipoPratoAtivo !== 'todos' || DashboardState.categoriaAtiva !== 'todos' || DashboardState.canalAtivo !== 'todos')
+                ? 'Nenhum insight disponível para os filtros selecionados neste período.'
+                : 'Nenhum insight disponível para este período.';
+            container.innerHTML = `<p style="color:#94a3b8; padding:20px; grid-column: 1/-1;">${mensagem}</p>`;
             return;
         }
 
@@ -2120,20 +2216,21 @@
     function renderABCChart(countA, countB, countC, valorA, valorB, valorC, totalGeral) {
         const ctx = document.getElementById('chartABC');
         if (chartABCInstance) chartABCInstance.destroy();
-        if (countA + countB + countC === 0) return;
 
         // Atualiza contadores de classe
         document.getElementById('countA').textContent = countA;
         document.getElementById('countB').textContent = countB;
         document.getElementById('countC').textContent = countC;
 
+        if (countA + countB + countC === 0) {
+            chartABCInstance = null;
+            return;
+        }
+
         // Calcula porcentagens baseadas em VALOR (não em quantidade)
         const pctA = totalGeral > 0 ? Math.round((valorA / totalGeral) * 100) : 0;
         const pctB = totalGeral > 0 ? Math.round((valorB / totalGeral) * 100) : 0;
         const pctC = totalGeral > 0 ? Math.round((valorC / totalGeral) * 100) : 0;
-
-        // DEBUG: Log para verificar cálculos
-        console.log(`[ABC CHART] A: ${countA} produtos (R$ ${valorA.toFixed(2)}, ${pctA}%), B: ${countB} produtos (R$ ${valorB.toFixed(2)}, ${pctB}%), C: ${countC} produtos (R$ ${valorC.toFixed(2)}, ${pctC}%), Total: R$ ${totalGeral.toFixed(2)}`);
 
         chartABCInstance = new Chart(ctx, {
             type: 'doughnut',
