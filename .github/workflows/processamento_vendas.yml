@@ -4,16 +4,19 @@ on:
   push:
     paths:
       - 'dados_vendas.csv'
+      - 'dados_vendas.xlsx'
+      - 'GMRMPMA*.csv'
+      - 'GMRMPMA*.xlsx'
   workflow_dispatch:
     inputs:
       arquivo_dados:
         description: 'Nome do arquivo de dados a processar (CSV ou XLSX)'
         required: false
-        default: 'dados_vendas.csv'
+        default: ''
 
 env:
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  ARQUIVO_DADOS: ${{ github.event.inputs.arquivo_dados || 'dados_vendas.csv' }}
+  ARQUIVO_DADOS: ${{ github.event.inputs.arquivo_dados || '' }}
 
 jobs:
   analise-vendas:
@@ -44,16 +47,37 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Verificar se arquivo de dados existe
-      - name: 🔍 Verificar arquivo de dados
+      # 4. Resolver arquivo de dados
+      - name: 🔍 Resolver arquivo de dados
         run: |
+          shopt -s nullglob
           echo "📂 Listando arquivos de dados no diretório:"
           ls -la *.xlsx *.csv 2>/dev/null || echo "Nenhum arquivo de dados encontrado"
-          ARQUIVO="${{ env.ARQUIVO_DADOS }}"
-          if [ ! -f "$ARQUIVO" ]; then
-            echo "❌ Arquivo '$ARQUIVO' não encontrado!"
-            exit 1
+
+          ARQUIVO_INPUT="${{ env.ARQUIVO_DADOS }}"
+          if [ -n "$ARQUIVO_INPUT" ]; then
+            if [ ! -f "$ARQUIVO_INPUT" ]; then
+              echo "❌ Arquivo informado '$ARQUIVO_INPUT' não encontrado!"
+              exit 1
+            fi
+            ARQUIVO="$ARQUIVO_INPUT"
+          else
+            candidatos=()
+            for padrao in dados_vendas.xlsx dados_vendas.csv dados_vendas.xls GMRMPMA*.xlsx GMRMPMA*.csv GMRMPMA*.xls; do
+              for arquivo in $padrao; do
+                [ -f "$arquivo" ] && candidatos+=("$arquivo")
+              done
+            done
+
+            if [ ${#candidatos[@]} -eq 0 ]; then
+              echo "❌ Nenhum arquivo de dados compatível foi encontrado!"
+              exit 1
+            fi
+
+            ARQUIVO="${candidatos[0]}"
           fi
+
+          echo "ARQUIVO_DADOS=$ARQUIVO" >> "$GITHUB_ENV"
           echo "✅ Arquivo '$ARQUIVO' encontrado"
           echo "📊 Tamanho: $(ls -lh "$ARQUIVO" | awk '{print $5}')"
 

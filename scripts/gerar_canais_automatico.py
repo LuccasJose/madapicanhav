@@ -11,33 +11,37 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-def gerar_analise_canais():
+from shared import carregar_dados, limpar_valor_monetario, resolver_arquivo_dados
+
+def gerar_analise_canais(caminho_arquivo=None):
     """Gera análise de canais a partir do CSV do banco de dados"""
     
     try:
-        # Caminho do arquivo CSV
-        csv_path = Path(__file__).parent.parent / 'GMRMPMA (2)(Export).csv'
-        
-        if not csv_path.exists():
-            print(f"❌ Arquivo não encontrado: {csv_path}")
+        arquivo_dados = resolver_arquivo_dados(
+            caminho_arquivo,
+            base_dir=Path(__file__).parent.parent,
+        )
+        if not arquivo_dados:
             return False
         
-        print(f"📊 Lendo banco de dados: {csv_path}")
-        
-        # Ler CSV com tratamento de encoding
-        try:
-            df = pd.read_csv(csv_path, sep=';', encoding='latin-1')
-        except:
-            df = pd.read_csv(csv_path, sep=';', encoding='cp1252')
-        
-        # Renomear colunas
-        df.columns = df.columns.str.replace('FtoResumoVendaGeralItem[', '').str.replace(']', '')
+        print(f"📊 Lendo banco de dados: {arquivo_dados}")
+        df = carregar_dados(arquivo_dados)
+        if df is None:
+            print("❌ Falha ao carregar arquivo de dados")
+            return False
+
+        colunas_necessarias = {'modo_venda_descr', 'material_descr', 'qtd', 'vl_total'}
+        faltantes = sorted(colunas_necessarias - set(df.columns))
+        if faltantes:
+            print(f"❌ Colunas obrigatórias ausentes: {faltantes}")
+            return False
         
         print(f"✅ Total de registros: {len(df)}")
         
         # Separar por canal
-        salao_df = df[df['modo_venda_descr'].str.lower().isin(['balcão', 'salão'])]
-        entrega_df = df[df['modo_venda_descr'].str.lower().isin(['entrega', 'ifood'])]
+        modo_venda = df['modo_venda_descr'].astype(str).str.strip().str.lower()
+        salao_df = df[modo_venda.isin(['balcão', 'balcao', 'salão', 'salao'])]
+        entrega_df = df[modo_venda.isin(['entrega', 'ifood'])]
         
         print(f"🏪 Salão: {len(salao_df)} registros")
         print(f"🚚 Entrega: {len(entrega_df)} registros")
@@ -90,8 +94,9 @@ def processar_canal(df_canal, nome_canal):
     
     for _, row in df_canal.iterrows():
         produto = row['material_descr']
-        qtd = float(str(row['qtd']).replace(',', '.'))
-        valor = float(str(row['vl_total']).replace(',', '.'))
+        qtd = pd.to_numeric(str(row['qtd']).replace(',', '.'), errors='coerce')
+        valor = limpar_valor_monetario(row['vl_total'])
+        qtd = float(qtd) if pd.notna(qtd) else 0.0
         
         produtos[produto]['quantidade'] += qtd
         produtos[produto]['valor_total'] += valor
@@ -109,6 +114,7 @@ def processar_canal(df_canal, nome_canal):
     }
 
 if __name__ == '__main__':
-    sucesso = gerar_analise_canais()
+    caminho_arquivo = sys.argv[1] if len(sys.argv) > 1 else None
+    sucesso = gerar_analise_canais(caminho_arquivo)
     sys.exit(0 if sucesso else 1)
 

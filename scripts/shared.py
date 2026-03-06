@@ -43,6 +43,15 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+PADROES_ARQUIVO_DADOS = (
+    'dados_vendas.xlsx',
+    'dados_vendas.csv',
+    'dados_vendas.xls',
+    'GMRMPMA*.xlsx',
+    'GMRMPMA*.csv',
+    'GMRMPMA*.xls',
+)
+
 # ==========================================
 # CONSTANTES DE COLUNAS DO DATASET
 # ==========================================
@@ -136,6 +145,49 @@ def limpar_valor_monetario(valor: Any) -> float:
     return 0.0
 
 
+def normalizar_colunas_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove o prefixo bruto da exportação quando presente."""
+    df = df.copy()
+    df.columns = (
+        pd.Index(df.columns)
+        .astype(str)
+        .str.replace('FtoResumoVendaGeralItem[', '', regex=False)
+        .str.replace(']', '', regex=False)
+    )
+    return df
+
+
+def resolver_arquivo_dados(
+    caminho: str | None = None,
+    base_dir: str | Path = '.',
+) -> Optional[str]:
+    """Resolve o arquivo de dados explicitamente informado ou por auto-detecção."""
+    base_path = Path(base_dir)
+
+    if caminho:
+        candidato = Path(caminho)
+        if not candidato.is_absolute():
+            candidato = base_path / candidato
+        if candidato.exists():
+            return str(candidato)
+        logger.error(f"Arquivo especificado não encontrado: {candidato}")
+        return None
+
+    for padrao in PADROES_ARQUIVO_DADOS:
+        encontrados = sorted(
+            arquivo for arquivo in base_path.glob(padrao) if arquivo.is_file()
+        )
+        if encontrados:
+            logger.info(f"Arquivo de dados detectado automaticamente: {encontrados[0]}")
+            return str(encontrados[0])
+
+    logger.error(
+        "Nenhum arquivo de dados encontrado. "
+        f"Padrões suportados: {', '.join(PADROES_ARQUIVO_DADOS)}"
+    )
+    return None
+
+
 def carregar_dados(caminho: str) -> Optional[pd.DataFrame]:
     """
     Carrega arquivo de dados (CSV ou XLSX) com detecção automática de formato.
@@ -150,6 +202,7 @@ def carregar_dados(caminho: str) -> Optional[pd.DataFrame]:
     if extensao in ('.xlsx', '.xls'):
         try:
             df = pd.read_excel(caminho, engine='openpyxl', dtype={COL_LOJA: str})
+            df = normalizar_colunas_dataset(df)
             logger.info(f"Excel carregado: {len(df)} registros")
             return df
         except Exception as e:
@@ -164,6 +217,7 @@ def carregar_dados(caminho: str) -> Optional[pd.DataFrame]:
                     caminho, sep=sep, encoding=encoding,
                     on_bad_lines='skip', dtype={COL_LOJA: str}
                 )
+                df = normalizar_colunas_dataset(df)
                 logger.info(f"CSV carregado ({encoding}, sep='{sep}'): {len(df)} registros")
                 return df
             except UnicodeDecodeError:

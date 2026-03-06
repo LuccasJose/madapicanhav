@@ -6,6 +6,7 @@ Script para gerar análises ABC separadas por canal de vendas (Salão vs iFood).
 
 import json
 import logging
+import sys
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
@@ -13,7 +14,7 @@ from collections import defaultdict
 import pandas as pd
 
 from shared import (
-    carregar_dados, limpar_valor_monetario, remover_ruidos,
+    carregar_dados, limpar_valor_monetario, remover_ruidos, resolver_arquivo_dados,
     COL_LOJA, COL_PRODUTO, COL_VALOR, COL_DATA, COL_QTD
 )
 
@@ -127,8 +128,14 @@ def main():
     logger.info("=" * 50)
     
     # Carregar dados
-    logger.info("Carregando CSV...")
-    df = carregar_dados('GMRMPMA (2).csv')
+    arquivo_dados = resolver_arquivo_dados(sys.argv[1] if len(sys.argv) > 1 else None)
+    if not arquivo_dados:
+        return 1
+
+    logger.info(f"Carregando arquivo de dados: {arquivo_dados}")
+    df = carregar_dados(arquivo_dados)
+    if df is None:
+        return 1
     
     # Preparar
     logger.info("Preparando dados...")
@@ -153,5 +160,5 @@ def main():
     logger.info("=" * 50)
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
 
